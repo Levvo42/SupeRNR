@@ -15,11 +15,16 @@ is implemented yet. The current milestone is a playable driving prototype; see
 
 - [Godot 4.7.2, .NET edition](https://godotengine.org/download)
 - .NET 10 SDK
+- C# IDE: the project is developed with [JetBrains Rider](https://www.jetbrains.com/rider/),
+  which has Godot support built in and applies `.editorconfig` as you type. Any
+  `.editorconfig`-aware editor works.
 
 ## Getting started
 
 1. Open `project.godot` in the Godot editor (or run `godot --path . --editor`).
-2. Build C# with the editor's **Build** button, or `dotnet build SupeRNR.sln`.
+   To open scripts in Rider, set **Editor Settings → Dotnet → Editor → External Editor**
+   to *JetBrains Rider* (a per-machine setting).
+2. Build C# with the editor's **Build** button, in Rider, or `dotnet build SupeRNR.sln`.
 3. Press **F5** in the editor, or run `godot --path .` (there is no main scene yet).
 
 ## Development workflow
