@@ -1,0 +1,22 @@
+# Normalize EOL for all files that Git considers text files.
+* text=auto eol=lf
+
+# Better diffs for C# hunks.
+*.cs diff=csharp
+
+# Binary assets: never normalize or merge as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.glb binary
+*.blend binary
+*.fbx binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.woff2 binary
+*.res binary
+*.scn binary

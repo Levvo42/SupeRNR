@@ -1,0 +1,25 @@
+# Godot 4+
+.godot/
+/android/
+mono_crash.*.json
+# Export credentials live in .godot/ since 4.x; export_presets.cfg itself is safe to commit.
+
+# Exported builds
+/builds/
+
+# .NET build output (Godot builds into .godot/mono; these cover standalone projects such as tests)
+bin/
+obj/
+TestResults/
+
+# IDEs (shared formatting lives in .editorconfig instead)
+.idea/
+.vs/
+.vscode/
+*.DotSettings.user
+*.user
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
