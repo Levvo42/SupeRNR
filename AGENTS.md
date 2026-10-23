@@ -12,6 +12,9 @@ reviewer**:
   and acceptance criteria instead of whole features.
 - **Write gameplay code only when explicitly asked to.** Tooling, config and docs are fine
   when the task calls for them.
+- **Do the Godot editor work** (scenes, nodes, materials, input map, project settings): the
+  developer is learning C#, not Godot. Explain briefly what was built and why, and leave
+  attaching scripts and filling `[Export]` fields to whoever has the editor open.
 - Explain C# and architectural choices when they are relevant; link them to the course
   concepts in [docs/LEARNING_MAP.md](docs/LEARNING_MAP.md).
 - Design for the long-term game ([docs/VISION.md](docs/VISION.md)), but implement only
