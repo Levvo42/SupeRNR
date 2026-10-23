@@ -1,0 +1,1254 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/spike/spike_car.tscn" id="1_car"]
+[ext_resource type="ArrayMesh" path="res://game/spike/drift_track_terrain.res" id="2_terrain_mesh"]
+[ext_resource type="HeightMapShape3D" path="res://game/spike/drift_track_terrain_shape.res" id="3_terrain_shape"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+
+[sub_resource type="Sky" id="Sky_sky"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky_sky")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="Shader" id="Shader_terrain"]
+code = "shader_type spatial;
+render_mode cull_disabled;
+// Vertex colour carries surface weights: r = road, g = ditch depth, b = parking asphalt.
+// A world-space checker on every surface makes speed and sliding readable.
+uniform vec3 grass_a : source_color = vec3(0.2, 0.34, 0.16);
+uniform vec3 grass_b : source_color = vec3(0.25, 0.4, 0.2);
+uniform vec3 road_a : source_color = vec3(0.14, 0.14, 0.15);
+uniform vec3 road_b : source_color = vec3(0.19, 0.19, 0.2);
+uniform vec3 ditch_a : source_color = vec3(0.33, 0.27, 0.15);
+uniform vec3 ditch_b : source_color = vec3(0.38, 0.31, 0.18);
+uniform vec3 lot_a : source_color = vec3(0.3, 0.3, 0.32);
+uniform vec3 lot_b : source_color = vec3(0.34, 0.34, 0.36);
+uniform float cell_size = 4.0;
+varying vec3 world_pos;
+void vertex() { world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	vec2 cell = floor(world_pos.xz / cell_size);
+	float checker = mod(cell.x + cell.y, 2.0);
+	vec3 c = mix(grass_a, grass_b, checker);
+	c = mix(c, mix(ditch_a, ditch_b, checker), COLOR.g);
+	c = mix(c, mix(road_a, road_b, checker), COLOR.r);
+	c = mix(c, mix(lot_a, lot_b, checker), COLOR.b);
+	ALBEDO = c;
+	ROUGHNESS = 0.9;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="Mat_terrain"]
+render_priority = 0
+shader = SubResource("Shader_terrain")
+
+[sub_resource type="Shader" id="Shader_checker"]
+code = "shader_type spatial;
+// World-space checker, used for the red and white rails.
+uniform vec3 color_a : source_color = vec3(0.8, 0.1, 0.08);
+uniform vec3 color_b : source_color = vec3(0.92, 0.92, 0.92);
+uniform float cell_size = 2.0;
+varying vec3 world_pos;
+void vertex() { world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	vec2 cell = floor(world_pos.xz / cell_size);
+	ALBEDO = mix(color_a, color_b, mod(cell.x + cell.y, 2.0));
+	ROUGHNESS = 0.7;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="Mat_rail"]
+render_priority = 0
+shader = SubResource("Shader_checker")
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.75, 0.75, 0.78, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wallNS"]
+size = Vector3(344, 3, 2)
+
+[sub_resource type="BoxMesh" id="Mesh_wallNS"]
+material = SubResource("Mat_wall")
+size = Vector3(344, 3, 2)
+
+[sub_resource type="BoxShape3D" id="Shape_wallEW"]
+size = Vector3(2, 3, 260)
+
+[sub_resource type="BoxMesh" id="Mesh_wallEW"]
+material = SubResource("Mat_wall")
+size = Vector3(2, 3, 260)
+
+[sub_resource type="StandardMaterial3D" id="Mat_paint"]
+albedo_color = Color(0.95, 0.95, 0.95, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_startline"]
+material = SubResource("Mat_paint")
+size = Vector3(1, 0.04, 16)
+
+[sub_resource type="BoxMesh" id="Mesh_bayline"]
+material = SubResource("Mat_paint")
+size = Vector3(0.15, 0.03, 5.5)
+
+[sub_resource type="BoxMesh" id="Mesh_rowline"]
+material = SubResource("Mat_paint")
+size = Vector3(42, 0.03, 0.15)
+
+[sub_resource type="BoxShape3D" id="Shape_parked"]
+size = Vector3(1.8, 0.9, 4)
+
+[sub_resource type="BoxMesh" id="Mesh_parked"]
+size = Vector3(1.8, 0.9, 4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_glass"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_cabin"]
+material = SubResource("Mat_glass")
+size = Vector3(1.6, 0.5, 2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_parked0"]
+albedo_color = Color(0.15, 0.35, 0.75, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_parked1"]
+albedo_color = Color(0.85, 0.85, 0.82, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_parked2"]
+albedo_color = Color(0.1, 0.1, 0.11, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_parked3"]
+albedo_color = Color(0.2, 0.55, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_parked4"]
+albedo_color = Color(0.85, 0.6, 0.1, 1)
+
+[sub_resource type="Curve3D" id="Curve_rail0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 132.24, 0, 34.41, 0, 0, 0, 0, 0, 0, 132.48, 0, 33.91, 0, 0, 0, 0, 0, 0, 132.67, 0, 33.39, 0, 0, 0, 0, 0, 0, 132.84, 0, 32.87, 0, 0, 0, 0, 0, 0, 132.98, 0, 32.33, 0, 0, 0, 0, 0, 0, 133.07, 0, 31.79, 0, 0, 0, 0, 0, 0, 133.14, 0, 31.24, 0, 0, 0, 0, 0, 0, 133.17, 0, 30.68, 0, 0, 0, 0, 0, 0, 133.17, 0, 30.13, 0, 0, 0, 0, 0, 0, 133.13, 0, 29.58, 0, 0, 0, 0, 0, 0, 133.05, 0, 29.03, 0, 0, 0, 0, 0, 0, 132.94, 0, 28.49, 0, 0, 0, 0, 0, 0, 132.80, 0, 27.95, 0, 0, 0, 0, 0, 0, 132.63, 0, 27.43, 0, 0, 0, 0, 0, 0, 132.42, 0, 26.92, 0, 0, 0, 0, 0, 0, 132.18, 0, 26.42, 0, 0, 0, 0, 0, 0, 131.91, 0, 25.93, 0, 0, 0, 0, 0, 0, 131.61, 0, 25.47, 0, 0, 0, 0, 0, 0, 131.28, 0, 25.02, 0, 0, 0, 0, 0, 0, 130.92, 0, 24.60, 0, 0, 0, 0, 0, 0, 130.54, 0, 24.20, 0, 0, 0, 0, 0, 0, 130.13, 0, 23.83, 0, 0, 0, 0, 0, 0, 129.70, 0, 23.48, 0, 0, 0, 0, 0, 0, 129.25, 0, 23.16, 0, 0, 0, 0, 0, 0, 128.38, 0, 22.58, 0, 0, 0, 0, 0, 0, 127.52, 0, 22.00, 0, 0, 0, 0, 0, 0, 126.65, 0, 21.42, 0, 0, 0, 0, 0, 0, 125.78, 0, 20.84, 0, 0, 0, 0, 0, 0, 124.91, 0, 20.26, 0, 0, 0, 0, 0, 0, 124.04, 0, 19.68, 0, 0, 0, 0, 0, 0, 123.17, 0, 19.10, 0, 0, 0, 0, 0, 0, 122.30, 0, 18.52, 0, 0, 0, 0, 0, 0, 121.43, 0, 17.94, 0, 0, 0, 0, 0, 0, 120.56, 0, 17.36, 0, 0, 0, 0, 0, 0, 119.69, 0, 16.78, 0, 0, 0, 0, 0, 0, 118.82, 0, 16.20, 0, 0, 0, 0, 0, 0, 117.95, 0, 15.62, 0, 0, 0, 0, 0, 0, 117.08, 0, 15.04, 0, 0, 0, 0, 0, 0, 116.22, 0, 14.46, 0, 0, 0, 0, 0, 0, 115.35, 0, 13.88),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 106.12, 0, 3.36, 0, 0, 0, 0, 0, 0, 105.57, 0, 2.00, 0, 0, 0, 0, 0, 0, 105.11, 0, 0.61, 0, 0, 0, 0, 0, 0, 104.73, 0, -0.81, 0, 0, 0, 0, 0, 0, 104.45, 0, -2.24, 0, 0, 0, 0, 0, 0, 104.26, 0, -3.69, 0, 0, 0, 0, 0, 0, 104.16, 0, -5.15, 0, 0, 0, 0, 0, 0, 104.15, 0, -6.62, 0, 0, 0, 0, 0, 0, 104.24, 0, -8.08, 0, 0, 0, 0, 0, 0, 104.42, 0, -9.53, 0, 0, 0, 0, 0, 0, 104.68, 0, -10.97, 0, 0, 0, 0, 0, 0, 105.04, 0, -12.39, 0, 0, 0, 0, 0, 0, 105.49, 0, -13.78, 0, 0, 0, 0, 0, 0, 106.02, 0, -15.14, 0, 0, 0, 0, 0, 0, 106.64, 0, -16.47, 0, 0, 0, 0, 0, 0, 107.34, 0, -17.75, 0, 0, 0, 0, 0, 0, 108.12, 0, -18.99, 0, 0, 0, 0, 0, 0, 108.98, 0, -20.18, 0, 0, 0, 0, 0, 0, 109.91, 0, -21.31, 0, 0, 0, 0, 0, 0, 110.91, 0, -22.37, 0, 0, 0, 0, 0, 0, 111.98, 0, -23.38, 0, 0, 0, 0, 0, 0, 113.10, 0, -24.31, 0, 0, 0, 0, 0, 0, 113.89, 0, -24.93, 0, 0, 0, 0, 0, 0, 114.68, 0, -25.54, 0, 0, 0, 0, 0, 0, 115.47, 0, -26.15, 0, 0, 0, 0, 0, 0, 116.26, 0, -26.77, 0, 0, 0, 0, 0, 0, 117.03, 0, -27.41, 0, 0, 0, 0, 0, 0, 117.78, 0, -28.07, 0, 0, 0, 0, 0, 0, 118.51, 0, -28.76, 0, 0, 0, 0, 0, 0, 119.23, 0, -29.46, 0, 0, 0, 0, 0, 0, 119.94, 0, -30.19, 0, 0, 0, 0, 0, 0, 120.63, 0, -30.92, 0, 0, 0, 0, 0, 0, 121.32, 0, -31.67, 0, 0, 0, 0, 0, 0, 121.99, 0, -32.43, 0, 0, 0, 0, 0, 0, 122.67, 0, -33.20, 0, 0, 0, 0, 0, 0, 123.33, 0, -33.97, 0, 0, 0, 0, 0, 0, 124.00, 0, -34.74, 0, 0, 0, 0, 0, 0, 124.67, 0, -35.51, 0, 0, 0, 0, 0, 0, 125.34, 0, -36.28, 0, 0, 0, 0, 0, 0, 126.01, 0, -37.04),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 23.05, 0, -38.11, 0, 0, 0, 0, 0, 0, 21.18, 0, -38.09, 0, 0, 0, 0, 0, 0, 19.31, 0, -38.27, 0, 0, 0, 0, 0, 0, 17.48, 0, -38.64, 0, 0, 0, 0, 0, 0, 15.69, 0, -39.21, 0, 0, 0, 0, 0, 0, 13.98, 0, -39.96, 0, 0, 0, 0, 0, 0, 12.35, 0, -40.89, 0, 0, 0, 0, 0, 0, 10.83, 0, -41.98, 0, 0, 0, 0, 0, 0, 9.44, 0, -43.23, 0, 0, 0, 0, 0, 0, 8.19, 0, -44.62, 0, 0, 0, 0, 0, 0, 7.09, 0, -46.14, 0, 0, 0, 0, 0, 0, 6.15, 0, -47.76, 0, 0, 0, 0, 0, 0, 5.39, 0, -49.47, 0, 0, 0, 0, 0, 0, 4.82, 0, -51.25, 0, 0, 0, 0, 0, 0, 4.44, 0, -53.09, 0, 0, 0, 0, 0, 0, 4.25, 0, -54.95, 0, 0, 0, 0, 0, 0, 4.26, 0, -56.82, 0, 0, 0, 0, 0, 0, 4.47, 0, -58.68, 0, 0, 0, 0, 0, 0, 4.64, 0, -59.68, 0, 0, 0, 0, 0, 0, 4.81, 0, -60.68, 0, 0, 0, 0, 0, 0, 4.97, 0, -61.68, 0, 0, 0, 0, 0, 0, 5.14, 0, -62.68, 0, 0, 0, 0, 0, 0, 5.31, 0, -63.67, 0, 0, 0, 0, 0, 0, 5.47, 0, -64.67, 0, 0, 0, 0, 0, 0, 5.64, 0, -65.67, 0, 0, 0, 0, 0, 0, 5.81, 0, -66.67, 0, 0, 0, 0, 0, 0, 5.97, 0, -67.67, 0, 0, 0, 0, 0, 0, 6.14, 0, -68.67, 0, 0, 0, 0, 0, 0, 6.30, 0, -69.66, 0, 0, 0, 0, 0, 0, 6.47, 0, -70.66, 0, 0, 0, 0, 0, 0, 6.64, 0, -71.66, 0, 0, 0, 0, 0, 0, 6.80, 0, -72.66, 0, 0, 0, 0, 0, 0, 6.97, 0, -73.66, 0, 0, 0, 0, 0, 0, 7.13, 0, -74.66, 0, 0, 0, 0, 0, 0, 7.29, 0, -75.66, 0, 0, 0, 0, 0, 0, 7.44, 0, -76.66, 0, 0, 0, 0, 0, 0, 7.59, 0, -77.66, 0, 0, 0, 0, 0, 0, 7.73, 0, -78.66, 0, 0, 0, 0, 0, 0, 7.87, 0, -79.66, 0, 0, 0, 0, 0, 0, 8.00, 0, -80.67),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail3"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 9.35, 0, -90.70, 0, 0, 0, 0, 0, 0, 9.50, 0, -91.70, 0, 0, 0, 0, 0, 0, 9.65, 0, -92.71, 0, 0, 0, 0, 0, 0, 9.81, 0, -93.71),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[sub_resource type="Curve3D" id="Curve_rail4"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 145.12, 0, 40.85, 0, 0, 0, 0, 0, 0, 145.73, 0, 39.53, 0, 0, 0, 0, 0, 0, 146.26, 0, 38.17, 0, 0, 0, 0, 0, 0, 146.70, 0, 36.78, 0, 0, 0, 0, 0, 0, 147.05, 0, 35.36, 0, 0, 0, 0, 0, 0, 147.31, 0, 33.93, 0, 0, 0, 0, 0, 0, 147.49, 0, 32.48, 0, 0, 0, 0, 0, 0, 147.57, 0, 31.02, 0, 0, 0, 0, 0, 0, 147.55, 0, 29.56, 0, 0, 0, 0, 0, 0, 147.45, 0, 28.11, 0, 0, 0, 0, 0, 0, 147.26, 0, 26.66, 0, 0, 0, 0, 0, 0, 146.97, 0, 25.23, 0, 0, 0, 0, 0, 0, 146.60, 0, 23.82, 0, 0, 0, 0, 0, 0, 146.13, 0, 22.44, 0, 0, 0, 0, 0, 0, 145.59, 0, 21.09, 0, 0, 0, 0, 0, 0, 144.95, 0, 19.77, 0, 0, 0, 0, 0, 0, 144.24, 0, 18.50, 0, 0, 0, 0, 0, 0, 143.45, 0, 17.27, 0, 0, 0, 0, 0, 0, 142.58, 0, 16.10, 0, 0, 0, 0, 0, 0, 141.64, 0, 14.99, 0, 0, 0, 0, 0, 0, 140.63, 0, 13.93, 0, 0, 0, 0, 0, 0, 139.56, 0, 12.94, 0, 0, 0, 0, 0, 0, 138.43, 0, 12.02, 0, 0, 0, 0, 0, 0, 137.24, 0, 11.17, 0, 0, 0, 0, 0, 0, 136.37, 0, 10.59, 0, 0, 0, 0, 0, 0, 135.50, 0, 10.02, 0, 0, 0, 0, 0, 0, 134.63, 0, 9.44, 0, 0, 0, 0, 0, 0, 133.76, 0, 8.86, 0, 0, 0, 0, 0, 0, 132.90, 0, 8.28, 0, 0, 0, 0, 0, 0, 132.03, 0, 7.70, 0, 0, 0, 0, 0, 0, 131.16, 0, 7.12, 0, 0, 0, 0, 0, 0, 130.29, 0, 6.54, 0, 0, 0, 0, 0, 0, 129.42, 0, 5.96, 0, 0, 0, 0, 0, 0, 128.55, 0, 5.38, 0, 0, 0, 0, 0, 0, 127.68, 0, 4.80, 0, 0, 0, 0, 0, 0, 126.81, 0, 4.22, 0, 0, 0, 0, 0, 0, 125.94, 0, 3.64, 0, 0, 0, 0, 0, 0, 125.07, 0, 3.06, 0, 0, 0, 0, 0, 0, 124.20, 0, 2.48, 0, 0, 0, 0, 0, 0, 123.33, 0, 1.90),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail5"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 119.29, 0, -2.45, 0, 0, 0, 0, 0, 0, 119.09, 0, -2.97, 0, 0, 0, 0, 0, 0, 118.91, 0, -3.49, 0, 0, 0, 0, 0, 0, 118.77, 0, -4.03, 0, 0, 0, 0, 0, 0, 118.66, 0, -4.57, 0, 0, 0, 0, 0, 0, 118.59, 0, -5.12, 0, 0, 0, 0, 0, 0, 118.55, 0, -5.68, 0, 0, 0, 0, 0, 0, 118.55, 0, -6.23, 0, 0, 0, 0, 0, 0, 118.58, 0, -6.79, 0, 0, 0, 0, 0, 0, 118.65, 0, -7.34, 0, 0, 0, 0, 0, 0, 118.75, 0, -7.88, 0, 0, 0, 0, 0, 0, 118.89, 0, -8.42, 0, 0, 0, 0, 0, 0, 119.06, 0, -8.95, 0, 0, 0, 0, 0, 0, 119.26, 0, -9.47, 0, 0, 0, 0, 0, 0, 119.49, 0, -9.97, 0, 0, 0, 0, 0, 0, 119.76, 0, -10.46, 0, 0, 0, 0, 0, 0, 120.05, 0, -10.93, 0, 0, 0, 0, 0, 0, 120.38, 0, -11.38, 0, 0, 0, 0, 0, 0, 120.73, 0, -11.81, 0, 0, 0, 0, 0, 0, 121.11, 0, -12.21, 0, 0, 0, 0, 0, 0, 121.52, 0, -12.59, 0, 0, 0, 0, 0, 0, 121.94, 0, -12.95, 0, 0, 0, 0, 0, 0, 122.73, 0, -13.56, 0, 0, 0, 0, 0, 0, 123.52, 0, -14.17, 0, 0, 0, 0, 0, 0, 124.31, 0, -14.79, 0, 0, 0, 0, 0, 0, 125.10, 0, -15.40, 0, 0, 0, 0, 0, 0, 125.91, 0, -15.99, 0, 0, 0, 0, 0, 0, 126.74, 0, -16.55, 0, 0, 0, 0, 0, 0, 127.58, 0, -17.10, 0, 0, 0, 0, 0, 0, 128.44, 0, -17.62, 0, 0, 0, 0, 0, 0, 129.32, 0, -18.13, 0, 0, 0, 0, 0, 0, 130.20, 0, -18.62, 0, 0, 0, 0, 0, 0, 131.10, 0, -19.10, 0, 0, 0, 0, 0, 0, 132.00, 0, -19.57, 0, 0, 0, 0, 0, 0, 132.91, 0, -20.03, 0, 0, 0, 0, 0, 0, 133.82, 0, -20.49, 0, 0, 0, 0, 0, 0, 134.73, 0, -20.94, 0, 0, 0, 0, 0, 0, 135.64, 0, -21.40, 0, 0, 0, 0, 0, 0, 136.55, 0, -21.86, 0, 0, 0, 0, 0, 0, 137.46, 0, -22.32),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail6"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 153.20, 0, -106.00, 0, 0, 0, 0, 0, 0, 153.09, 0, -107.93, 0, 0, 0, 0, 0, 0, 152.77, 0, -109.83, 0, 0, 0, 0, 0, 0, 152.23, 0, -111.68, 0, 0, 0, 0, 0, 0, 151.50, 0, -113.46, 0, 0, 0, 0, 0, 0, 150.56, 0, -115.15, 0, 0, 0, 0, 0, 0, 149.45, 0, -116.72, 0, 0, 0, 0, 0, 0, 148.16, 0, -118.16, 0, 0, 0, 0, 0, 0, 146.72, 0, -119.45, 0, 0, 0, 0, 0, 0, 145.15, 0, -120.56, 0, 0, 0, 0, 0, 0, 143.46, 0, -121.50, 0, 0, 0, 0, 0, 0, 141.68, 0, -122.23, 0, 0, 0, 0, 0, 0, 139.83, 0, -122.77, 0, 0, 0, 0, 0, 0, 137.92, 0, -123.05, 0, 0, 0, 0, 0, 0, 136.00, 0, -123.04, 0, 0, 0, 0, 0, 0, 135.00, 0, -122.88, 0, 0, 0, 0, 0, 0, 134.00, 0, -122.70, 0, 0, 0, 0, 0, 0, 133.00, 0, -122.52, 0, 0, 0, 0, 0, 0, 132.00, 0, -122.36, 0, 0, 0, 0, 0, 0, 131.00, 0, -122.24),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 20
+
+[sub_resource type="Curve3D" id="Curve_rail7"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -52.14, 0, -114.20, 0, 0, 0, 0, 0, 0, -53.48, 0, -114.18, 0, 0, 0, 0, 0, 0, -54.82, 0, -114.11, 0, 0, 0, 0, 0, 0, -56.15, 0, -113.99, 0, 0, 0, 0, 0, 0, -57.48, 0, -113.83, 0, 0, 0, 0, 0, 0, -58.80, 0, -113.63, 0, 0, 0, 0, 0, 0, -60.12, 0, -113.38, 0, 0, 0, 0, 0, 0, -61.43, 0, -113.08, 0, 0, 0, 0, 0, 0, -62.72, 0, -112.75, 0, 0, 0, 0, 0, 0, -64.00, 0, -112.36, 0, 0, 0, 0, 0, 0, -65.27, 0, -111.94, 0, 0, 0, 0, 0, 0, -66.53, 0, -111.47, 0, 0, 0, 0, 0, 0, -67.76, 0, -110.95, 0, 0, 0, 0, 0, 0, -68.98, 0, -110.40, 0, 0, 0, 0, 0, 0, -70.18, 0, -109.80, 0, 0, 0, 0, 0, 0, -71.36, 0, -109.17, 0, 0, 0, 0, 0, 0, -72.24, 0, -108.67, 0, 0, 0, 0, 0, 0, -73.11, 0, -108.18, 0, 0, 0, 0, 0, 0, -73.99, 0, -107.69, 0, 0, 0, 0, 0, 0, -74.87, 0, -107.19, 0, 0, 0, 0, 0, 0, -75.74, 0, -106.70, 0, 0, 0, 0, 0, 0, -76.62, 0, -106.21, 0, 0, 0, 0, 0, 0, -77.50, 0, -105.71, 0, 0, 0, 0, 0, 0, -78.37, 0, -105.22, 0, 0, 0, 0, 0, 0, -79.25, 0, -104.73, 0, 0, 0, 0, 0, 0, -80.13, 0, -104.23, 0, 0, 0, 0, 0, 0, -81.00, 0, -103.74, 0, 0, 0, 0, 0, 0, -81.88, 0, -103.25, 0, 0, 0, 0, 0, 0, -82.76, 0, -102.76, 0, 0, 0, 0, 0, 0, -83.63, 0, -102.26, 0, 0, 0, 0, 0, 0, -84.51, 0, -101.77, 0, 0, 0, 0, 0, 0, -85.39, 0, -101.28, 0, 0, 0, 0, 0, 0, -86.26, 0, -100.78, 0, 0, 0, 0, 0, 0, -87.14, 0, -100.29, 0, 0, 0, 0, 0, 0, -88.02, 0, -99.80, 0, 0, 0, 0, 0, 0, -88.89, 0, -99.30, 0, 0, 0, 0, 0, 0, -89.77, 0, -98.81, 0, 0, 0, 0, 0, 0, -90.65, 0, -98.32, 0, 0, 0, 0, 0, 0, -91.52, 0, -97.82, 0, 0, 0, 0, 0, 0, -92.40, 0, -97.33),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail8"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -101.17, 0, -92.40, 0, 0, 0, 0, 0, 0, -102.04, 0, -91.91, 0, 0, 0, 0, 0, 0, -102.92, 0, -91.41, 0, 0, 0, 0, 0, 0, -103.80, 0, -90.92, 0, 0, 0, 0, 0, 0, -104.67, 0, -90.43, 0, 0, 0, 0, 0, 0, -105.55, 0, -89.93, 0, 0, 0, 0, 0, 0, -106.43, 0, -89.44, 0, 0, 0, 0, 0, 0, -107.30, 0, -88.95, 0, 0, 0, 0, 0, 0, -108.18, 0, -88.46, 0, 0, 0, 0, 0, 0, -109.06, 0, -87.96, 0, 0, 0, 0, 0, 0, -109.93, 0, -87.47, 0, 0, 0, 0, 0, 0, -110.81, 0, -86.98, 0, 0, 0, 0, 0, 0, -111.69, 0, -86.48, 0, 0, 0, 0, 0, 0, -112.56, 0, -85.99, 0, 0, 0, 0, 0, 0, -113.44, 0, -85.50, 0, 0, 0, 0, 0, 0, -114.32, 0, -85.00, 0, 0, 0, 0, 0, 0, -115.19, 0, -84.51, 0, 0, 0, 0, 0, 0, -116.07, 0, -84.02, 0, 0, 0, 0, 0, 0, -116.95, 0, -83.52, 0, 0, 0, 0, 0, 0, -117.82, 0, -83.03, 0, 0, 0, 0, 0, 0, -118.70, 0, -82.54, 0, 0, 0, 0, 0, 0, -119.58, 0, -82.04, 0, 0, 0, 0, 0, 0, -120.45, 0, -81.55, 0, 0, 0, 0, 0, 0, -121.33, 0, -81.06, 0, 0, 0, 0, 0, 0, -122.21, 0, -80.57, 0, 0, 0, 0, 0, 0, -123.08, 0, -80.07, 0, 0, 0, 0, 0, 0, -123.96, 0, -79.58, 0, 0, 0, 0, 0, 0, -124.84, 0, -79.09, 0, 0, 0, 0, 0, 0, -125.71, 0, -78.59, 0, 0, 0, 0, 0, 0, -126.59, 0, -78.10, 0, 0, 0, 0, 0, 0, -127.46, 0, -77.61, 0, 0, 0, 0, 0, 0, -128.34, 0, -77.11, 0, 0, 0, 0, 0, 0, -129.22, 0, -76.62, 0, 0, 0, 0, 0, 0, -130.37, 0, -75.94, 0, 0, 0, 0, 0, 0, -131.50, 0, -75.23, 0, 0, 0, 0, 0, 0, -132.61, 0, -74.48, 0, 0, 0, 0, 0, 0, -133.69, 0, -73.69, 0, 0, 0, 0, 0, 0, -134.74, 0, -72.86, 0, 0, 0, 0, 0, 0, -135.77, 0, -72.00, 0, 0, 0, 0, 0, 0, -136.76, 0, -71.10),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail9"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -144.81, 0, -60.49, 0, 0, 0, 0, 0, 0, -145.40, 0, -59.29, 0, 0, 0, 0, 0, 0, -145.96, 0, -58.07, 0, 0, 0, 0, 0, 0, -146.47, 0, -56.83, 0, 0, 0, 0, 0, 0, -146.94, 0, -55.58, 0, 0, 0, 0, 0, 0, -147.36, 0, -54.31, 0, 0, 0, 0, 0, 0, -147.75, 0, -53.03, 0, 0, 0, 0, 0, 0, -148.09, 0, -51.73, 0, 0, 0, 0, 0, 0, -148.38, 0, -50.43, 0, 0, 0, 0, 0, 0, -148.63, 0, -49.11, 0, 0, 0, 0, 0, 0, -148.84, 0, -47.79, 0, 0, 0, 0, 0, 0, -148.99, 0, -46.46, 0, 0, 0, 0, 0, 0, -149.11, 0, -45.13, 0, 0, 0, 0, 0, 0, -149.18, 0, -43.79, 0, 0, 0, 0, 0, 0, -149.20, 0, -42.45, 0, 0, 0, 0, 0, 0, -149.20, 0, -41.44, 0, 0, 0, 0, 0, 0, -149.20, 0, -40.43, 0, 0, 0, 0, 0, 0, -149.20, 0, -39.41, 0, 0, 0, 0, 0, 0, -149.20, 0, -38.40, 0, 0, 0, 0, 0, 0, -149.20, 0, -37.38, 0, 0, 0, 0, 0, 0, -149.20, 0, -36.37, 0, 0, 0, 0, 0, 0, -149.20, 0, -35.36, 0, 0, 0, 0, 0, 0, -149.20, 0, -34.34, 0, 0, 0, 0, 0, 0, -149.20, 0, -33.33, 0, 0, 0, 0, 0, 0, -149.20, 0, -32.31, 0, 0, 0, 0, 0, 0, -149.20, 0, -31.30, 0, 0, 0, 0, 0, 0, -149.20, 0, -30.29, 0, 0, 0, 0, 0, 0, -149.20, 0, -29.27, 0, 0, 0, 0, 0, 0, -149.20, 0, -28.26, 0, 0, 0, 0, 0, 0, -149.20, 0, -27.24, 0, 0, 0, 0, 0, 0, -149.20, 0, -26.23, 0, 0, 0, 0, 0, 0, -149.20, 0, -25.21, 0, 0, 0, 0, 0, 0, -149.20, 0, -24.20, 0, 0, 0, 0, 0, 0, -149.20, 0, -23.19, 0, 0, 0, 0, 0, 0, -149.20, 0, -22.17, 0, 0, 0, 0, 0, 0, -149.20, 0, -21.16, 0, 0, 0, 0, 0, 0, -149.20, 0, -20.14, 0, 0, 0, 0, 0, 0, -149.20, 0, -19.13, 0, 0, 0, 0, 0, 0, -149.20, 0, -18.12, 0, 0, 0, 0, 0, 0, -149.19, 0, -17.10),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 40
+
+[sub_resource type="Curve3D" id="Curve_rail10"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -148.94, 0, -6.96, 0, 0, 0, 0, 0, 0, -148.90, 0, -5.95, 0, 0, 0, 0, 0, 0, -148.86, 0, -4.93, 0, 0, 0, 0, 0, 0, -148.82, 0, -3.92, 0, 0, 0, 0, 0, 0, -148.78, 0, -2.90, 0, 0, 0, 0, 0, 0, -148.74, 0, -1.89, 0, 0, 0, 0, 0, 0, -148.70, 0, -0.88, 0, 0, 0, 0, 0, 0, -148.66, 0, 0.14, 0, 0, 0, 0, 0, 0, -148.62, 0, 1.15, 0, 0, 0, 0, 0, 0, -148.58, 0, 2.17, 0, 0, 0, 0, 0, 0, -148.54, 0, 3.18, 0, 0, 0, 0, 0, 0, -148.50, 0, 4.20, 0, 0, 0, 0, 0, 0, -148.46, 0, 5.21, 0, 0, 0, 0, 0, 0, -148.42, 0, 6.22, 0, 0, 0, 0, 0, 0, -148.39, 0, 7.24, 0, 0, 0, 0, 0, 0, -148.36, 0, 8.25, 0, 0, 0, 0, 0, 0, -148.33, 0, 9.27, 0, 0, 0, 0, 0, 0, -148.30, 0, 10.28, 0, 0, 0, 0, 0, 0, -148.27, 0, 11.29, 0, 0, 0, 0, 0, 0, -148.25, 0, 12.31, 0, 0, 0, 0, 0, 0, -148.23, 0, 13.32, 0, 0, 0, 0, 0, 0, -148.22, 0, 14.34, 0, 0, 0, 0, 0, 0, -148.21, 0, 15.35, 0, 0, 0, 0, 0, 0, -148.20, 0, 16.36),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 24
+
+[node name="DriftTrack" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 50, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 150.0
+
+[node name="Terrain" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0, 0.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain"]
+shape = ExtResource("3_terrain_shape")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Terrain"]
+mesh = ExtResource("2_terrain_mesh")
+material_override = SubResource("Mat_terrain")
+
+[node name="Walls" type="Node3D" parent="."]
+
+[node name="North" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.5, -131)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/North"]
+shape = SubResource("Shape_wallNS")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/North"]
+mesh = SubResource("Mesh_wallNS")
+
+[node name="South" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.5, 131)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/South"]
+shape = SubResource("Shape_wallNS")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/South"]
+mesh = SubResource("Mesh_wallNS")
+
+[node name="West" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -171, 1.5, 0.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/West"]
+shape = SubResource("Shape_wallEW")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/West"]
+mesh = SubResource("Mesh_wallEW")
+
+[node name="East" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 171, 1.5, 0.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/East"]
+shape = SubResource("Shape_wallEW")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/East"]
+mesh = SubResource("Mesh_wallEW")
+
+[node name="Rails" type="Node3D" parent="."]
+
+[node name="RailPath1" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail0")
+
+[node name="Rail1" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath1")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath2" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail1")
+
+[node name="Rail2" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath2")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath3" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail2")
+
+[node name="Rail3" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath3")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath4" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail3")
+
+[node name="Rail4" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath4")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath5" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail4")
+
+[node name="Rail5" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath5")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath6" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail5")
+
+[node name="Rail6" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath6")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath7" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail6")
+
+[node name="Rail7" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath7")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath8" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail7")
+
+[node name="Rail8" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath8")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath9" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail8")
+
+[node name="Rail9" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath9")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath10" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail9")
+
+[node name="Rail10" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath10")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="RailPath11" type="Path3D" parent="Rails"]
+curve = SubResource("Curve_rail10")
+
+[node name="Rail11" type="CSGPolygon3D" parent="Rails"]
+use_collision = true
+polygon = PackedVector2Array(-0.2, 0, -0.2, 0.7, 0.2, 0.7, 0.2, 0)
+mode = 2
+path_node = NodePath("../RailPath11")
+path_interval_type = 0
+path_interval = 1.0
+path_rotation = 2
+path_local = true
+material = SubResource("Mat_rail")
+
+[node name="StartLine" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 95)
+mesh = SubResource("Mesh_startline")
+
+[node name="ParkingLot" type="Node3D" parent="."]
+
+[node name="Lines" type="Node3D" parent="ParkingLot"]
+
+[node name="ParkedCars" type="StaticBody3D" parent="ParkingLot"]
+
+[node name="Line1" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line2" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -93, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line3" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line4" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line5" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line6" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line7" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line8" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line9" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line10" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line11" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line12" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line13" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line14" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line15" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0.015, 14.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line16" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line17" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -93, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line18" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line19" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line20" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line21" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line22" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line23" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line24" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line25" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line26" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line27" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line28" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line29" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line30" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0.015, 30.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line31" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line32" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -93, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line33" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line34" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line35" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line36" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line37" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line38" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line39" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line40" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line41" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line42" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line43" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line44" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line45" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0.015, 35.75)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line46" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line47" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -93, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line48" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line49" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line50" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line51" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line52" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line53" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line54" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line55" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69, 0.015, 51.25)
+mesh = SubResource("Mesh_bayline")
+
+[node name="Line56" type="MeshInstance3D" parent="ParkingLot/Lines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0.015, 33)
+mesh = SubResource("Mesh_rowline")
+
+[node name="Collision1" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -94.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car1" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -94.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision2" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -91.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car2" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -91.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision3" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -85.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car3" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -85.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision4" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -82.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car4" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -82.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision5" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -79.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car5" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -79.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision6" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -70.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car6" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -70.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car6"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision7" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -67.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car7" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -67.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car7"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision8" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -61.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car8" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -61.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision9" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -58.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car9" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -58.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car9"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision10" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -55.5, 0.5, 14.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car10" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -55.5, 0.5, 14.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car10"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision11" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -94.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car11" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -94.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car11"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision12" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -88.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car12" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -88.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car12"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision13" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -85.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car13" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -85.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car13"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision14" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -82.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car14" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -82.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car14"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision15" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -79.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car15" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -79.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car15"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision16" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -73.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car16" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -73.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car16"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision17" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -70.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car17" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -70.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car17"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision18" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -61.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car18" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -61.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car18"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision19" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -58.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car19" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -58.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car19"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision20" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -55.5, 0.5, 30.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car20" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -55.5, 0.5, 30.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car20"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision21" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -94.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car21" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -94.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car21"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision22" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -91.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car22" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -91.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car22"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision23" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -88.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car23" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -88.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car23"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision24" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -82.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car24" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -82.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car24"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision25" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -79.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car25" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -79.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car25"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision26" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -76.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car26" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -76.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car26"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision27" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -73.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car27" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -73.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car27"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision28" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -67.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car28" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -67.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car28"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision29" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -64.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car29" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -64.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car29"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision30" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -58.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car30" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -58.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car30"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision31" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -55.5, 0.5, 35.75)
+shape = SubResource("Shape_parked")
+
+[node name="Car31" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -55.5, 0.5, 35.75)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car31"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision32" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -94.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car32" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -94.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car32"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision33" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -91.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car33" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -91.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car33"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision34" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -85.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car34" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -85.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car34"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision35" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -82.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car35" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -82.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car35"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision36" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -79.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car36" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -79.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car36"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision37" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -73.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car37" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -73.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car37"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision38" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -70.5, 0.5, 51.25)
+shape = SubResource("Shape_parked")
+
+[node name="Car38" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, -70.5, 0.5, 51.25)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car38"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision39" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 14)
+shape = SubResource("Shape_parked")
+
+[node name="Car39" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 14)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car39"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision40" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 26)
+shape = SubResource("Shape_parked")
+
+[node name="Car40" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 26)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car40"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision41" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 30.5)
+shape = SubResource("Shape_parked")
+
+[node name="Car41" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 30.5)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked0")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car41"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision42" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 40.5)
+shape = SubResource("Shape_parked")
+
+[node name="Car42" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 40.5)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked1")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car42"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision43" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 45)
+shape = SubResource("Shape_parked")
+
+[node name="Car43" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -14, 0.5, 45)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked2")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car43"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision44" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -34, 0.5, 31)
+shape = SubResource("Shape_parked")
+
+[node name="Car44" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -34, 0.5, 31)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked3")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car44"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Collision45" type="CollisionShape3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -34, 0.5, 35)
+shape = SubResource("Shape_parked")
+
+[node name="Car45" type="MeshInstance3D" parent="ParkingLot/ParkedCars"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -34, 0.5, 35)
+mesh = SubResource("Mesh_parked")
+material_override = SubResource("Mat_parked4")
+
+[node name="Cabin" type="MeshInstance3D" parent="ParkingLot/ParkedCars/Car45"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0.3)
+mesh = SubResource("Mesh_cabin")
+
+[node name="Car" parent="." instance=ExtResource("1_car")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 1, 95)
+
+[node name="CameraFollow" type="RemoteTransform3D" parent="Car"]
+remote_path = NodePath("../../CameraRig")
+update_rotation = false
+update_scale = false
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1, 95)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.5855, 0.8106, 0, -0.8106, 0.5855, 0, 42, 30)
+current = true
+fov = 50.0
+far = 1000.0
