@@ -92,3 +92,11 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
 - **Decision:** Race and session state live in a recreatable `RaceSession`, not in global
   singletons.
 - **Consequences:** Clean restarts, and a path to multiple sessions or a headless server.
+
+## 13. Agent builds scenes, developer writes C#: 2026-10-21, Accepted
+
+- **Context:** The learning goal is C#, not the Godot editor, which is new to the developer.
+- **Decision:** The agent builds scenes, materials, input map and project settings, and
+  explains what it built. The developer writes the gameplay C# and attaches scripts.
+- **Consequences:** Faster progress on what the course grades. Scene files are written
+  on disk, so the editor must be closed (or the scene not yet open) when the agent edits them.
