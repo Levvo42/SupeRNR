@@ -26,3 +26,6 @@ Desktop.ini
 
 # Claude Code's temporary git worktrees (each is a full checkout of this repo)
 .claude/worktrees/
+
+# Personal notes: tutorials and session logs (private/README.md)
+/private/

@@ -100,3 +100,28 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   explains what it built. The developer writes the gameplay C# and attaches scripts.
 - **Consequences:** Faster progress on what the course grades. Scene files are written
   on disk, so the editor must be closed (or the scene not yet open) when the agent edits them.
+
+## 14. Ray suspension with fixed tyre points: 2026-10-26, Accepted
+
+- **Context:** The spike car's box slid on the ground and its wheel forces also worked in
+  the air, so it flew off hills, stopped dead at kerbs and could not recover from its roof.
+- **Decision:** One `RayCast3D` spring and damper per wheel (30000 N/m, 3000 N·s/m,
+  0.5 m) holds the car up. A wheel only grips, drives and brakes while its ray hits the
+  ground, but its tyre force stays at the fixed body point (y -0.4) rather than at the ray's
+  hit point, which cut grip cornering by about 20%. Gravity scale 2. Recovery: the car
+  levels itself in the air and rolls itself back over after 1 s on its side or roof.
+- **Consequences:** Measured on a 14° ramp: 1.4 s airtime instead of 3–5 s, and it lands on
+  its wheels. The drift tune is unchanged. The ray must call `ForceRaycastUpdate()` or the
+  spring reacts one frame late. The wheel meshes do not yet move with the springs.
+
+## 15. Ramps are CSG bodies on top of the terrain: 2026-10-26, Accepted
+
+- **Context:** The spike drift track is a 1 m heightmap. A ramp needs a sharp lip and a
+  4 m drop, which a 1 m grid cannot hold without steep, broken triangles.
+- **Decision:** Each ramp is a `CSGPolygon3D` with collision: its side profile (smooth
+  transition, straight face, lip) is extruded across the road and sunk 0.3 m into the
+  ground. Shapes are sized with a point-mass flight model at the speeds the car really
+  reaches there, then checked by driving the car over them.
+- **Consequences:** Ramps can be moved and reshaped without touching the terrain. The
+  flight model matched the car to within about 1 m of landing point. The overpass lands at
+  every speed the car reaches after corner 7 (36–41 m/s at the lip, 0.8–1.1 s airtime).

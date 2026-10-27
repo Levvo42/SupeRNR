@@ -25,7 +25,8 @@ is implemented yet. The current milestone is a playable driving prototype; see
    To open scripts in Rider, set **Editor Settings → Dotnet → Editor → External Editor**
    to *JetBrains Rider* (a per-machine setting).
 2. Build C# with the editor's **Build** button, in Rider, or `dotnet build SupeRNR.sln`.
-3. Press **F5** in the editor, or run `godot --path .` (there is no main scene yet).
+3. Press **F5** in the editor, or run `godot --path .`. The main scene is the spike drift
+   track, `game/spike/drift_track.tscn`.
 
 ## Development workflow
 
@@ -42,6 +43,19 @@ godot_console --headless --path . --import            # Godot import/resource sa
 - Work on short-lived branches off `main`; keep changes small.
 - Move or rename Godot files **inside the Godot editor** so `res://` references and
   `.uid` files stay intact. Commit the `.uid` files.
+
+## Exporting a test build
+
+`export_presets.cfg` has one preset, **Windows Desktop**, which writes to `builds/windows/`
+(ignored by git). It needs the Godot 4.7.2 .NET export templates (**Editor → Manage Export
+Templates**). With the editor closed:
+
+```sh
+godot_console --headless --path . --export-release "Windows Desktop" builds/windows/SupeRNR.exe
+```
+
+Zip the whole `builds/windows/` folder: the `.exe` needs the `.pck` and the
+`data_SupeRNR_windows_x86_64` folder next to it. Testers need nothing installed.
 
 ## Documentation
 

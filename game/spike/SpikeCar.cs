@@ -90,8 +90,32 @@ public partial class SpikeCar : RigidBody3D
     // m/s of sideways slip for full smoke.
     [Export] public float FullSmokeSlip { get; set; } = 10f;
 
+    [ExportGroup("Suspension")]
+    // N per metre a spring is squeezed. The spring length is the ray's length.
+    [Export] public float SpringStrength { get; set; } = 30000f;
+
+    // N per m/s a spring is squeezed or stretched (the shock absorber).
+    [Export] public float SpringDamping { get; set; } = 3000f;
+
+    [ExportGroup("Recovery")]
+    // In the air: how hard the car turns towards upright, per radian of tilt.
+    [Export] public float AirLevel { get; set; } = 6f;
+
+    // In the air: share of the tumbling (pitch and roll spin) removed per second.
+    [Export] public float AirDamp { get; set; } = 2f;
+
+    // Seconds stuck on the side or roof before the car rolls itself back over.
+    [Export] public float RightDelay { get; set; } = 1f;
+
+    // Radians per second the car rolls while righting itself.
+    [Export] public float RightSpeed { get; set; } = 3f;
+
+    // m/s upward hop when righting starts, so the roof does not scrape.
+    [Export] public float RightHop { get; set; } = 2f;
+
     // --------------------------------------------------------------- Constants
-    // Wheel contact points relative to the car's centre (x right, y up, -z forward).
+    // Where the tires push, relative to the car's centre (x right, y up, -z forward).
+    // Kept fixed instead of using the suspension's ground point, which changed the tuned handling.
     private static readonly Vector3 FrontLeftWheel = new(-0.8f, -0.4f, -1.3f);
     private static readonly Vector3 FrontRightWheel = new(0.8f, -0.4f, -1.3f);
     private static readonly Vector3 RearLeftWheel = new(-0.8f, -0.4f, 1.3f);
@@ -102,15 +126,26 @@ public partial class SpikeCar : RigidBody3D
     private float _steerAngle;
     private float _previousHeading;
     private bool _pivoting;
+    private float _tippedTime;
+    private bool _righting;
 
-    // Child nodes, found once in _Ready.
-    private GpuParticles3D _smokeRearLeft;
-    private GpuParticles3D _smokeRearRight;
+    // Child nodes, found once in _Ready. "= null!" tells the compiler they are
+    // never null when used, because _Ready runs before _PhysicsProcess.
+    private RayCast3D _rayFrontLeft = null!;
+    private RayCast3D _rayFrontRight = null!;
+    private RayCast3D _rayRearLeft = null!;
+    private RayCast3D _rayRearRight = null!;
+    private GpuParticles3D _smokeRearLeft = null!;
+    private GpuParticles3D _smokeRearRight = null!;
 
     // --------------------------------------------------------- Godot callbacks
     public override void _Ready()
     {
         GD.Print($"Car ready. Mass: {Mass} kg");
+        _rayFrontLeft = GetNode<RayCast3D>("RayFrontLeft");
+        _rayFrontRight = GetNode<RayCast3D>("RayFrontRight");
+        _rayRearLeft = GetNode<RayCast3D>("RayRearLeft");
+        _rayRearRight = GetNode<RayCast3D>("RayRearRight");
         _smokeRearLeft = GetNode<GpuParticles3D>("SmokeRearLeft");
         _smokeRearRight = GetNode<GpuParticles3D>("SmokeRearRight");
     }
@@ -140,16 +175,36 @@ public partial class SpikeCar : RigidBody3D
         float frontMax = reversing ? trailMax : leadMax;
         float rearMax = reversing ? leadMax : trailMax;
 
-        // Wheels
-        Vector3 frontWheelRight = SteerFrontWheels(steer, forward, reversing, dt);
-        ApplyWheel(FrontLeftWheel, frontWheelRight, 0f, wheelBrake, frontMax, 1f);
-        ApplyWheel(FrontRightWheel, frontWheelRight, 0f, wheelBrake, frontMax, 1f);
-        float rearLeftSlip = ApplyWheel(RearLeftWheel, Basis.X, rearDrive, wheelBrake, rearMax, SlideGrip);
-        float rearRightSlip = ApplyWheel(RearRightWheel, Basis.X, rearDrive, wheelBrake, rearMax, SlideGrip);
-        ApplyCentralForce(-forward * forwardSpeed * RollingDrag);
+        // Suspension: first, because it tells which wheels touch the ground
+        bool frontLeftDown = ApplySuspension(_rayFrontLeft);
+        bool frontRightDown = ApplySuspension(_rayFrontRight);
+        bool rearLeftDown = ApplySuspension(_rayRearLeft);
+        bool rearRightDown = ApplySuspension(_rayRearRight);
+        int wheelsDown = (frontLeftDown ? 1 : 0) + (frontRightDown ? 1 : 0) + (rearLeftDown ? 1 : 0) + (rearRightDown ? 1 : 0);
+        bool onGround = wheelsDown >= 2;
 
-        // Drift helpers and effects
-        ApplyGlide(throttle, forward, handbrake, dt);
+        // Wheels: only the ones on the ground grip, drive and brake (0 slip in the air)
+        Vector3 frontWheelRight = SteerFrontWheels(steer, forward, reversing, dt);
+        if (frontLeftDown)
+        {
+            ApplyWheel(FrontLeftWheel, frontWheelRight, 0f, wheelBrake, frontMax, 1f);
+        }
+
+        if (frontRightDown)
+        {
+            ApplyWheel(FrontRightWheel, frontWheelRight, 0f, wheelBrake, frontMax, 1f);
+        }
+
+        float rearLeftSlip = rearLeftDown ? ApplyWheel(RearLeftWheel, Basis.X, rearDrive, wheelBrake, rearMax, SlideGrip) : 0f;
+        float rearRightSlip = rearRightDown ? ApplyWheel(RearRightWheel, Basis.X, rearDrive, wheelBrake, rearMax, SlideGrip) : 0f;
+        if (onGround)
+        {
+            ApplyCentralForce(-forward * forwardSpeed * RollingDrag);
+        }
+
+        // Drift helpers, recovery and effects
+        ApplyGlide(throttle, forward, handbrake, onGround, dt);
+        ApplyRecovery(wheelsDown, forward, dt);
         UpdateSmoke(rearLeftSlip, rearRightSlip);
     }
 
@@ -172,6 +227,35 @@ public partial class SpikeCar : RigidBody3D
         }
 
         return Basis.X.Rotated(Basis.Y, wheelAngle);
+    }
+
+    // -------------------------------------------------------------- Suspension
+
+    // One spring per wheel: the ray looks down from the wheel's mount. Pushes the
+    // car up at the ground point and returns whether the wheel touches the ground.
+    private bool ApplySuspension(RayCast3D ray)
+    {
+        // Cast now: the ray's own update would give last frame's result
+        ray.ForceRaycastUpdate();
+        if (!ray.IsColliding())
+        {
+            return false;
+        }
+
+        // How far the spring is squeezed (0 = fully stretched)
+        Vector3 hitPoint = ray.GetCollisionPoint();
+        float distance = ray.GlobalPosition.DistanceTo(hitPoint);
+        float compression = ray.TargetPosition.Length() - distance;
+
+        // How fast it is being squeezed (negative = stretching)
+        Vector3 offset = hitPoint - GlobalPosition;
+        Vector3 pointVelocity = LinearVelocity + AngularVelocity.Cross(offset);
+        float compressionSpeed = -pointVelocity.Dot(Basis.Y);
+
+        // Spring plus shock absorber. Max: a tire can push on the road, never pull.
+        float springForce = compression * SpringStrength + compressionSpeed * SpringDamping;
+        ApplyForce(Basis.Y * Mathf.Max(0f, springForce), offset);
+        return true;
     }
 
     // ------------------------------------------------------------------ Wheels
@@ -216,14 +300,15 @@ public partial class SpikeCar : RigidBody3D
 
     // Holds the slide angle steady while drifting without the handbrake. With the
     // handbrake held, or past PivotAngle, it hands over to the drift assist.
-    private void ApplyGlide(float throttle, Vector3 forward, bool handbrake, float delta)
+    private void ApplyGlide(float throttle, Vector3 forward, bool handbrake, bool onGround, float delta)
     {
-        // How fast the direction of travel turns (radians per second)
+        // How fast the direction of travel turns (radians per second). The heading is
+        // saved every frame, also in the air, so the first frame after landing is right.
         Vector3 flatVelocity = new(LinearVelocity.X, 0f, LinearVelocity.Z);
         float heading = Mathf.Atan2(-flatVelocity.X, -flatVelocity.Z);
         float travelTurnRate = Mathf.Wrap(heading - _previousHeading, -Mathf.Pi, Mathf.Pi) / delta;
         _previousHeading = heading;
-        if (flatVelocity.Length() < 5f)
+        if (!onGround || flatVelocity.Length() < 5f)
         {
             return;
         }
@@ -282,6 +367,56 @@ public partial class SpikeCar : RigidBody3D
             LinearVelocity = LinearVelocity.Rotated(Basis.Y, followAngle);
             AngularVelocity *= 1f - DriftYawDamp * delta;
         }
+    }
+
+    // ---------------------------------------------------------------- Recovery
+
+    // Keeps the car on its wheels: levels it in the air, and rolls it back over
+    // when it is stuck on its side or roof.
+    private void ApplyRecovery(int wheelsDown, Vector3 forward, float delta)
+    {
+        // upDot: 1 upright, 0 on its side, -1 on the roof. Turning around tiltAxis
+        // brings the roof back up; its length is 0 upright and exactly upside down.
+        float upDot = Basis.Y.Dot(Vector3.Up);
+        Vector3 tiltAxis = Basis.Y.Cross(Vector3.Up);
+
+        // In the air: a spring towards upright plus a damper on tumbling. The spin
+        // around world up (yaw) is left alone.
+        if (wheelsDown == 0)
+        {
+            float tilt = Mathf.Acos(Mathf.Clamp(upDot, -1f, 1f));
+            Vector3 axis = tiltAxis.Length() > 0.01f ? tiltAxis.Normalized() : forward;
+            Vector3 tumble = AngularVelocity - Vector3.Up * AngularVelocity.Y;
+            AngularVelocity += (axis * tilt * AirLevel - tumble * AirDamp) * delta;
+        }
+
+        // Tipped over 60° and not standing on its wheels for RightDelay seconds: hop
+        bool stuck = upDot < 0.5f && wheelsDown < 2;
+        _tippedTime = stuck ? _tippedTime + delta : 0f;
+        if (_tippedTime > RightDelay && !_righting)
+        {
+            _righting = true;
+            LinearVelocity += Vector3.Up * RightHop;
+        }
+
+        if (!_righting)
+        {
+            return;
+        }
+
+        // Nearly upright again: the springs take over
+        if (upDot > 0.8f)
+        {
+            _righting = false;
+            _tippedTime = 0f;
+            return;
+        }
+
+        // Roll the shorter way at exactly RightSpeed (either way when on the roof)
+        float side = tiltAxis.Dot(forward);
+        float rollDirection = Mathf.Abs(side) < 0.05f ? 1f : Mathf.Sign(side);
+        float rollNow = AngularVelocity.Dot(forward);
+        AngularVelocity += forward * (rollDirection * RightSpeed - rollNow);
     }
 
     // ----------------------------------------------------------------- Effects

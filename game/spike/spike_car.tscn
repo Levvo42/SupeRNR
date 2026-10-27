@@ -6,7 +6,7 @@
 friction = 0.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_car"]
-size = Vector3(1.8, 0.8, 4)
+size = Vector3(1.8, 0.6, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_car"]
 albedo_color = Color(0.8, 0.15, 0.1, 1)
@@ -85,6 +85,7 @@ color_ramp = SubResource("GradientTexture1D_smoke_life")
 
 [node name="SpikeCar" type="RigidBody3D" unique_id=1198720092]
 mass = 1200.0
+gravity_scale = 2.0
 physics_material_override = SubResource("PhysicsMaterial_car")
 center_of_mass_mode = 1
 center_of_mass = Vector3(0, -0.3, 0)
@@ -93,6 +94,7 @@ angular_damp = 0.3
 script = ExtResource("1_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=935736686]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 shape = SubResource("BoxShape3D_car")
 
 [node name="Body" type="MeshInstance3D" parent="." unique_id=1467937027]
@@ -139,3 +141,19 @@ fixed_fps = 60
 visibility_aabb = AABB(-40, -2, -40, 80, 10, 80)
 process_material = SubResource("ParticleProcessMaterial_smoke")
 draw_pass_1 = SubResource("QuadMesh_smoke")
+
+[node name="RayFrontLeft" type="RayCast3D" parent="." unique_id=1846203517]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, -0.1, -1.3)
+target_position = Vector3(0, -0.5, 0)
+
+[node name="RayFrontRight" type="RayCast3D" parent="." unique_id=402718395]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, -0.1, -1.3)
+target_position = Vector3(0, -0.5, 0)
+
+[node name="RayRearLeft" type="RayCast3D" parent="." unique_id=1290537184]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, -0.1, 1.3)
+target_position = Vector3(0, -0.5, 0)
+
+[node name="RayRearRight" type="RayCast3D" parent="." unique_id=738164029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, -0.1, 1.3)
+target_position = Vector3(0, -0.5, 0)
