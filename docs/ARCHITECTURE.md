@@ -12,7 +12,16 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **C# project:** `SupeRNR.sln` → `SupeRNR.csproj` (Godot.NET.Sdk 4.7.2), `net10.0`,
   nullable reference types enabled, root namespace `SupeRNR`. The solution carries Godot's
   `Debug`, `ExportDebug` and `ExportRelease` configurations.
-- **Gameplay code:** none yet.
+- **Gameplay code:** driving input in `game/vehicles/`; the car itself is still the D-1
+  spike in `game/spike/`.
+- **Input actions** (`project.godot`): `accelerate`, `brake`, `steer_left`, `steer_right`,
+  `handbrake`. Keyboard uses physical keys (arrows and WASD, Space); gamepad uses the
+  triggers, the left stick and the bottom face button. Deadzone 0.2.
+- **Driving input:** `PlayerDriver` is the only code that reads Godot's `Input`. Each physics
+  tick the car asks the `PlayerDriver` assigned to its `Driver` export for a `DrivingInput`,
+  an immutable `readonly record struct` of throttle, brake, steer and handbrake. With no
+  driver assigned the car gets `DrivingInput.None`. The `PlayerDriver` node sits next to the
+  car in the track scene, because the track decides who drives.
 
 ## Conventions
 
@@ -49,8 +58,6 @@ AiDriver        (milestone 3)    ──►      ▲
 Network input   (later)          ──►──────┘
 ```
 
-- `DrivingInput` is a small immutable value (`readonly record struct`): throttle, brake,
-  steer, handbrake. The vehicle consumes one each physics tick and never reads `Input`.
 - Humans, bots and (later) remote players all drive the same `Vehicle`. An input-source
   interface is introduced when the second source (AI) is built, not before.
 - Because input is a plain value, it can later be sent to an authoritative server as a

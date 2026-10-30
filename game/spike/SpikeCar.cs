@@ -1,10 +1,14 @@
 using Godot;
+using SupeRNR.Vehicles;
 
 namespace SupeRNR.Spike;
 
 // Spike car: a RigidBody3D pushed by one force per wheel, plus drift helpers.
 public partial class SpikeCar : RigidBody3D
 {
+    // Who drives this car. Without a driver it just rolls.
+    [Export] public PlayerDriver? Driver { get; set; }
+
     // ---------------------------------------------------------------- Settings
     // [ExportGroup] starts a foldable section in the Inspector; every [Export]
     // after it belongs to that section until the next group starts.
@@ -21,7 +25,7 @@ public partial class SpikeCar : RigidBody3D
 
     [ExportGroup("Grip")]
     // N, the most force one wheel can push with (its grip budget).
-    [Export] public float MaxWheelForce { get; set; } = 10000f;
+    [Export] public float MaxWheelForce { get; set; } = 12000f;
 
     // N per m/s of sideways slide.
     [Export] public float WheelGrip { get; set; } = 6000f;
@@ -155,9 +159,10 @@ public partial class SpikeCar : RigidBody3D
         float dt = (float)delta;
 
         // Input
-        float throttle = Input.GetAxis("ui_down", "ui_up");
-        float steer = Input.GetAxis("ui_right", "ui_left");
-        bool handbrake = Input.IsActionPressed("ui_accept");
+        DrivingInput input = Driver?.Read() ?? DrivingInput.None;
+        float throttle = input.Throttle - input.Brake;
+        float steer = input.Steer;
+        bool handbrake = input.Handbrake;
 
         // Where the car is going
         Vector3 forward = -Basis.Z;

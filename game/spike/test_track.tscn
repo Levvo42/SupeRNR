@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://es7132f4pw4x"]
 
 [ext_resource type="PackedScene" uid="uid://bivma0atkx7g8" path="res://game/spike/spike_car.tscn" id="1_car"]
+[ext_resource type="Script" uid="uid://d2qvuigfwom8f" path="res://game/vehicles/PlayerDriver.cs" id="2_m7w4y"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 
@@ -522,13 +523,17 @@ shape = SubResource("Shape_cone")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="JTurnLane/Cone12" unique_id=1945769742]
 mesh = SubResource("Mesh_cone")
 
-[node name="Car" parent="." unique_id=1129855839 instance=ExtResource("1_car")]
+[node name="Car" parent="." unique_id=1129855839 node_paths=PackedStringArray("Driver") instance=ExtResource("1_car")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 1, 110)
+Driver = NodePath("../PlayerDriver")
 
 [node name="CameraFollow" type="RemoteTransform3D" parent="Car" unique_id=551552790]
 remote_path = NodePath("../../CameraRig")
 update_rotation = false
 update_scale = false
+
+[node name="PlayerDriver" type="Node" parent="." unique_id=551200710]
+script = ExtResource("2_m7w4y")
 
 [node name="CameraRig" type="Node3D" parent="." unique_id=1274210826]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 110)
