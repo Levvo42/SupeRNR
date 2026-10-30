@@ -1,7 +1,7 @@
 # MVP: Milestone 1, driving prototype
 
 **Target date:** 2026-11-14 (academic deadline).
-**Status:** not started. Progress is tracked in [BACKLOG.md](BACKLOG.md).
+**Status:** in progress. Progress is tracked in [BACKLOG.md](BACKLOG.md).
 
 ## Goal
 
