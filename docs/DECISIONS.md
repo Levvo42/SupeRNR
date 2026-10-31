@@ -164,3 +164,22 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   later. An earlier 8 m wide hairpin was rejected: it left no room to exit on full throttle.
   The gas catch from a 70° slide still peaks near 8 g, from the velocity-rotating drift
   helpers. The car is rear-wheel drive only.
+
+## 18. Track banking lives in the heightmap, built by a generator: 2026-10-30, Accepted
+
+- **Context:** The car needs corners that aren't flat, and the drift track needs a passage
+  into a tight turn that 4–8 cars can bump through. Reshaping a 1 m heightmap and its rails
+  by hand in the editor can't keep the road, terrain, collision and rails in line.
+- **Decision:** `tools/drift_track/` generates the track from one table of corners in
+  `layout.py`. Banking is part of the heightmap: the road tilts across its width, the tilt
+  eases in and out along the road, and a graded shoulder blends it into the ground. A height
+  step between neighbouring cells is capped at 0.45 m. `build.py` rewrites only the rail
+  curves, the rail nodes and the `LongStraight` position in `drift_track.tscn`, then
+  `build_terrain.gd` saves the terrain mesh and collision shape.
+- **Consequences:** The S-curve is banked 10° and the big corner 14°, and they work with the
+  existing suspension and no `Vehicle` change. The passage has a 12 m gate, not the 8 m of
+  `TightTurn`, and a scripted driver took it 0.73 s faster drifting than braking. Packs of 4,
+  6 and 8 scripted cars all got through it with none stuck or tipped. Rails now follow the
+  ground, and `LongStraight` moved to sit on the new road. Hand edits to the rails or terrain
+  are lost on the next build, so track changes start in `layout.py`. Ramps stay CSG bodies
+  (decision 15).

@@ -23,6 +23,11 @@ part to the first only when it is implemented. The reasoning behind each choice 
   an immutable `readonly record struct` of throttle, brake, steer and handbrake. With no
   driver assigned the car gets `DrivingInput.None`. The `PlayerDriver` node sits next to the
   car in the track scene, because the track decides who drives.
+- **Track generator:** `tools/drift_track/` builds the spike drift track's terrain and rails
+  from the corner table in `layout.py` (Python, plus one Godot script). With the editor
+  closed, run `python tools/drift_track/build.py`, then
+  `godot_console --headless --path . --script res://tools/drift_track/build_terrain.gd`.
+  `preview.py` prints the layout checks without Godot. The ramps are not generated.
 
 ## Conventions
 

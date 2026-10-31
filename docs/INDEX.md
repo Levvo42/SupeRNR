@@ -29,6 +29,7 @@ The repository root is also the Godot project root (`res://`).
 | `project.godot` | current | Godot project settings (input map, physics, rendering) |
 | `docs/` | current | This documentation. Contains `.gdignore` so Godot skips it |
 | `game/` | current | Our scenes, C# scripts and `.tres` resources, grouped by feature. Now: `spike/`, `vehicles/`. Planned: `tracks/`, `race/`, `cameras/`, `ui/`, `main/` |
+| `tools/` | current | Development tools. `drift_track/` generates the spike drift track's terrain and rails |
 | `assets/` | planned | Imported third-party art, audio and fonts, grouped by source pack; `assets/CREDITS.md` records licences |
 | `core/` | planned | Engine-free C# library for testable rules (lap validation, timing). Has `.gdignore` |
 | `tests/` | planned | xUnit tests for `core/`. Has `.gdignore` |
