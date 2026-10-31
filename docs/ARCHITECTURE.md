@@ -19,6 +19,11 @@ part to the first only when it is implemented. The reasoning behind each choice 
   with `[Export]` properties), one `.tres` per car; `default_tuning.tres` is the only one so
   far. Different cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass`
   onto its own `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
+- **Camera:** `game/cameras/follow_camera.tscn` is placed in each track, and its `Target`
+  export is set to the car. The child `Camera3D` holds the fixed view angle (decision 19).
+  `FollowCamera` moves the root node towards a point ahead of the car, smoothly and without
+  ever turning it. Physics interpolation is on, so anything moved in `_PhysicsProcess` looks
+  smooth at any frame rate.
 - **Input actions** (`project.godot`): `accelerate`, `brake`, `steer_left`, `steer_right`,
   `handbrake`. Keyboard uses physical keys (arrows and WASD, Space); gamepad uses the
   triggers, the left stick and the bottom face button. Deadzone 0.2.
@@ -99,11 +104,6 @@ Network input   (later)          ──►──────┘
 - `core/` and `tests/` contain a `.gdignore` and are excluded from the Godot project's
   compile items.
 - Only rules that are naturally engine-independent go here. Physics stays in Godot.
-
-### Camera
-
-- A fixed 3/4 isometric-style camera that follows the car without rotating with it
-  (see [VISION.md](VISION.md#camera-direction)).
 
 ### Networking (long-term, no code now)
 

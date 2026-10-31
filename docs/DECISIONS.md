@@ -183,3 +183,20 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   ground, and `LongStraight` moved to sit on the new road. Hand edits to the rails or terrain
   are lost on the next build, so track changes start in `layout.py`. Ramps stay CSG bodies
   (decision 15).
+
+## 19. Camera is a narrow perspective, 54° down, about 60 m tall: 2026-10-31, Accepted
+
+- **Context:** Decision 11 left orthographic vs. perspective to D-6. The spike camera used a
+  50° lens, which bent the track noticeably towards the edges of the view, and its 48 m tall
+  view gave only 0.8 s of warning at speed.
+- **Decision:** A perspective `Camera3D` with a 30° lens, 112 m from the car, looking 54°
+  down. That shows about 60 m top to bottom at the car. Renders of the banked corner and the
+  overpass jump showed orthographic reads cleanly but flattens ramps and banking, while a
+  narrow lens keeps those shapes with little distortion. The camera follows in
+  `_PhysicsProcess` with physics interpolation on, so it stays smooth on any screen.
+- **Consequences:** The camera sits far from the track, so each track's sun needs
+  `directional_shadow_max_distance` of about 220 m or shadows vanish, and a near plane of
+  10 m keeps depth precise. Far-away objects look slightly smaller; only the projection
+  property changes if orthographic is preferred later, plus a `Size` of 60. Physics
+  interpolation means a teleported body needs `ResetPhysicsInterpolation()`, or it visibly
+  slides to its new position (relevant to D-12). The drift lap is unchanged at 47.28 s.
