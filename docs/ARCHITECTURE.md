@@ -12,7 +12,26 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **C# project:** `SupeRNR.sln` → `SupeRNR.csproj` (Godot.NET.Sdk 4.7.2), `net10.0`,
   nullable reference types enabled, root namespace `SupeRNR`. The solution carries Godot's
   `Debug`, `ExportDebug` and `ExportRelease` configurations.
-- **Gameplay code:** none yet.
+- **Gameplay code:** the car and its driving input in `game/vehicles/`. `Vehicle` is the
+  D-1 spike with braking, reverse and slide handling added. The test tracks are still in
+  `game/spike/`.
+- **Handling tuning:** every handling number lives in a `VehicleTuning` resource (`Resource`
+  with `[Export]` properties), one `.tres` per car; `default_tuning.tres` is the only one so
+  far. Different cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass`
+  onto its own `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
+- **Input actions** (`project.godot`): `accelerate`, `brake`, `steer_left`, `steer_right`,
+  `handbrake`. Keyboard uses physical keys (arrows and WASD, Space); gamepad uses the
+  triggers, the left stick and the bottom face button. Deadzone 0.2.
+- **Driving input:** `PlayerDriver` is the only code that reads Godot's `Input`. Each physics
+  tick the car asks the `PlayerDriver` assigned to its `Driver` export for a `DrivingInput`,
+  an immutable `readonly record struct` of throttle, brake, steer and handbrake. With no
+  driver assigned the car gets `DrivingInput.None`. The `PlayerDriver` node sits next to the
+  car in the track scene, because the track decides who drives.
+- **Track generator:** `tools/drift_track/` builds the spike drift track's terrain and rails
+  from the corner table in `layout.py` (Python, plus one Godot script). With the editor
+  closed, run `python tools/drift_track/build.py`, then
+  `godot_console --headless --path . --script res://tools/drift_track/build_terrain.gd`.
+  `preview.py` prints the layout checks without Godot. The ramps are not generated.
 
 ## Conventions
 
@@ -49,8 +68,6 @@ AiDriver        (milestone 3)    ──►      ▲
 Network input   (later)          ──►──────┘
 ```
 
-- `DrivingInput` is a small immutable value (`readonly record struct`): throttle, brake,
-  steer, handbrake. The vehicle consumes one each physics tick and never reads `Input`.
 - Humans, bots and (later) remote players all drive the same `Vehicle`. An input-source
   interface is introduced when the second source (AI) is built, not before.
 - Because input is a plain value, it can later be sent to an authoritative server as a
@@ -62,8 +79,6 @@ Network input   (later)          ──►──────┘
   applies arcade forces each physics tick: engine/brake force along the car's forward
   axis, and a lateral-grip force that opposes sideways sliding up to a limit. Exceeding
   the limit (or using the handbrake) produces a drift.
-- Handling values live in a `VehicleTuning` resource (`Resource` with `[Export]`
-  properties), one `.tres` per car. Different cars mean different data, not subclasses.
 - Visual-only effects (body roll, skid marks, smoke) read vehicle state and never
   feed back into physics.
 

@@ -112,7 +112,8 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   levels itself in the air and rolls itself back over after 1 s on its side or roof.
 - **Consequences:** Measured on a 14° ramp: 1.4 s airtime instead of 3–5 s, and it lands on
   its wheels. The drift tune is unchanged. The ray must call `ForceRaycastUpdate()` or the
-  spring reacts one frame late. The wheel meshes do not yet move with the springs.
+  spring reacts one frame late. The wheel meshes follow the springs, but only the picture
+  moves: the tyre force points stay fixed.
 
 ## 15. Ramps are CSG bodies on top of the terrain: 2026-10-26, Accepted
 
@@ -125,3 +126,60 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
 - **Consequences:** Ramps can be moved and reshaped without touching the terrain. The
   flight model matched the car to within about 1 m of landing point. The overpass lands at
   every speed the car reaches after corner 7 (36–41 m/s at the lip, 0.8–1.1 s airtime).
+
+## 16. Reverse is a low gear, and free-rolling keeps momentum: 2026-10-30, Accepted
+
+- **Context:** The car should be able to spin 180°, travel backwards at speed (to shoot
+  behind it later) and spin back, without the move killing its speed. A plain cap on
+  reverse speed bled that speed away. Rolling drag, Godot's default linear damping (0.1
+  per second) and the spins themselves were all taking speed.
+- **Decision:** Reverse works like first gear: strong pull (14000 N), but the engine adds
+  no speed above `MaxReverseSpeed` (20 m/s). Above that speed, with the reverse pedal held,
+  the car free-rolls: no rolling drag and no linear damping, so it keeps its momentum. A
+  handbrake slide off the gas free-rolls too, but only while the car is actually sliding, so
+  a straight-line handbrake still slows it. Backwards, the steering fades harder with speed
+  (ReverseSteer, 30% at reverse top speed) because the steered wheels trail, but the
+  handbrake keeps the full lock for a fast spin back.
+- **Consequences:** On flat ground, spinning from 30 m/s gives about 27 m/s backwards and
+  about 24 m/s out of the second spin. Holding reverse keeps speed indefinitely on flat
+  ground, which is deliberate; releasing every pedal coasts as normal. Pressing reverse
+  before the car has turned past sideways still brakes it. Stronger reverse makes a tap roll
+  further (9 m from 0.2 s), so precise parking needs a tap of gas to stop.
+
+## 17. Grip is 2.8 g, so tight turns reward a slide: 2026-10-30, Accepted
+
+- **Context:** The car should feel arcadey but allow real drifting techniques, and a drift
+  must be faster than braking through a very tight turn. At 3.9 g the car steered through
+  most turns, and off the gas a slide either spun round or snapped straight, with no skid
+  in between.
+- **Decision:** `MaxWheelForce` drops from 12000 N to 8500 N (2.8 g, 23 m radius at 25 m/s).
+  With no pedal held, `CoastCalm` holds the slide angle while the tyres scrub the speed off.
+  Gas against backwards momentum spins the wheels: `WheelspinPush` lets 35% of the engine
+  through, with smoke. More than about 6° off straight backwards, the nose swings round. The
+  swing is a helper, not a tyre force, and its turn rate builds up at `BreakoutRamp` and eases
+  off as the car lines up, because setting it directly felt like a jerk.
+- **Consequences:** `TightTurn` in `test_track.tscn` is the benchmark: an 8 m gate into a bowl
+  around a 4 m inner radius, with a 20 m wide exit. A scripted driver reached the end of the
+  exit walls in 4.42 s drifting and 4.87 s braking, wall-free, and was 0.35 s ahead 100 m
+  later. An earlier 8 m wide hairpin was rejected: it left no room to exit on full throttle.
+  The gas catch from a 70° slide still peaks near 8 g, from the velocity-rotating drift
+  helpers. The car is rear-wheel drive only.
+
+## 18. Track banking lives in the heightmap, built by a generator: 2026-10-30, Accepted
+
+- **Context:** The car needs corners that aren't flat, and the drift track needs a passage
+  into a tight turn that 4–8 cars can bump through. Reshaping a 1 m heightmap and its rails
+  by hand in the editor can't keep the road, terrain, collision and rails in line.
+- **Decision:** `tools/drift_track/` generates the track from one table of corners in
+  `layout.py`. Banking is part of the heightmap: the road tilts across its width, the tilt
+  eases in and out along the road, and a graded shoulder blends it into the ground. A height
+  step between neighbouring cells is capped at 0.45 m. `build.py` rewrites only the rail
+  curves, the rail nodes and the `LongStraight` position in `drift_track.tscn`, then
+  `build_terrain.gd` saves the terrain mesh and collision shape.
+- **Consequences:** The S-curve is banked 10° and the big corner 14°, and they work with the
+  existing suspension and no `Vehicle` change. The passage has a 12 m gate, not the 8 m of
+  `TightTurn`, and a scripted driver took it 0.73 s faster drifting than braking. Packs of 4,
+  6 and 8 scripted cars all got through it with none stuck or tipped. Rails now follow the
+  ground, and `LongStraight` moved to sit on the new road. Hand edits to the rails or terrain
+  are lost on the next build, so track changes start in `layout.py`. Ramps stay CSG bodies
+  (decision 15).

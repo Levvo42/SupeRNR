@@ -18,10 +18,10 @@ Acceptance criteria for M1 items are in [MVP.md](MVP.md).
 | ID | Task | Status |
 |---|---|---|
 | D-1 | Physics spike: `RigidBody3D` car on a flat plane, check feel and stability (timeboxed: 1 day) | done |
-| D-2 | Input actions in the Input Map (keyboard + gamepad) and `DrivingInput` + `PlayerDriver` | todo |
-| D-3 | `Vehicle`: throttle, brake, reverse, speed-dependent steering | todo |
-| D-4 | `VehicleTuning` resource; move all handling numbers into it | todo |
-| D-5 | Lateral grip and handbrake drift with countersteer recovery | todo |
+| D-2 | Input actions in the Input Map (keyboard + gamepad) and `DrivingInput` + `PlayerDriver` | done |
+| D-3 | `Vehicle`: throttle, brake, reverse, speed-dependent steering | done |
+| D-4 | `VehicleTuning` resource; move all handling numbers into it | done |
+| D-5 | Lateral grip and handbrake drift with countersteer recovery | done |
 | D-6 | Isometric follow camera (pick orthographic vs. perspective) | todo |
 | D-7 | Graybox circuit with walls and start/finish | todo |
 | D-8 | `core/` library + xUnit test project | todo |
@@ -31,13 +31,7 @@ Acceptance criteria for M1 items are in [MVP.md](MVP.md).
 | D-12 | Session restart | todo |
 | D-13 | Handling polish pass and submission build | todo |
 
-## Icebox (not scheduled)
+## Not scheduled
 
-- Ghost car replaying your best lap (a natural second `DrivingInput` source).
-- Skid marks, tyre smoke, engine sound.
-- Jumps and ramps on real tracks. The spike drift track already has test ramps: an overpass
-  jump, three tabletops and a jump test pad with four kicker heights.
-- Debug overlay for velocity, slip angle and grip.
-- Garage/shop: buy cars and upgrades with credits (cars as `VehicleTuning` data).
-- Player profile saved locally: credits, best lap and race time per track. Later
-  achievements and online leaderboards built on it.
+Unscheduled features and ideas are in [IDEAS.md](IDEAS.md); known bugs are in
+[BUGS.md](BUGS.md).

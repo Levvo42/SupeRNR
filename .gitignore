@@ -12,6 +12,9 @@ bin/
 obj/
 TestResults/
 
+# Python bytecode from tools/
+__pycache__/
+
 # IDEs (shared formatting lives in .editorconfig instead)
 .idea/
 .vs/
