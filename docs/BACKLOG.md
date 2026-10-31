@@ -20,7 +20,7 @@ Acceptance criteria for M1 items are in [MVP.md](MVP.md).
 | D-1 | Physics spike: `RigidBody3D` car on a flat plane, check feel and stability (timeboxed: 1 day) | done |
 | D-2 | Input actions in the Input Map (keyboard + gamepad) and `DrivingInput` + `PlayerDriver` | done |
 | D-3 | `Vehicle`: throttle, brake, reverse, speed-dependent steering | done |
-| D-4 | `VehicleTuning` resource; move all handling numbers into it | todo |
+| D-4 | `VehicleTuning` resource; move all handling numbers into it | done |
 | D-5 | Lateral grip and handbrake drift with countersteer recovery | done |
 | D-6 | Isometric follow camera (pick orthographic vs. perspective) | todo |
 | D-7 | Graybox circuit with walls and start/finish | todo |

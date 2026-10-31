@@ -15,6 +15,10 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **Gameplay code:** the car and its driving input in `game/vehicles/`. `Vehicle` is the
   D-1 spike with braking, reverse and slide handling added. The test tracks are still in
   `game/spike/`.
+- **Handling tuning:** every handling number lives in a `VehicleTuning` resource (`Resource`
+  with `[Export]` properties), one `.tres` per car; `default_tuning.tres` is the only one so
+  far. Different cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass`
+  onto its own `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
 - **Input actions** (`project.godot`): `accelerate`, `brake`, `steer_left`, `steer_right`,
   `handbrake`. Keyboard uses physical keys (arrows and WASD, Space); gamepad uses the
   triggers, the left stick and the bottom face button. Deadzone 0.2.
@@ -75,8 +79,6 @@ Network input   (later)          ──►──────┘
   applies arcade forces each physics tick: engine/brake force along the car's forward
   axis, and a lateral-grip force that opposes sideways sliding up to a limit. Exceeding
   the limit (or using the handbrake) produces a drift.
-- Handling values live in a `VehicleTuning` resource (`Resource` with `[Export]`
-  properties), one `.tres` per car. Different cars mean different data, not subclasses.
 - Visual-only effects (body roll, skid marks, smoke) read vehicle state and never
   feed back into physics.
 

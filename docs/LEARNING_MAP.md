@@ -15,7 +15,7 @@ show off a concept; if a concept has no natural home yet, leave it waiting for i
 | Collections | `List<TimeSpan>` of lap times; ordered checkpoint array | M1 | planned |
 | LINQ | Best lap and total time from the lap list; later, race standings ordering | M1 / M3 | planned |
 | Algorithms | Ordered checkpoint validation; slip-angle and lateral-velocity projection; camera smoothing | M1 | planned |
-| Inheritance | `Vehicle : RigidBody3D`, `VehicleTuning : Resource` (extending engine types) | M1 | planned |
+| Inheritance | `Vehicle : RigidBody3D` ([Vehicle.cs](../game/vehicles/Vehicle.cs)), `VehicleTuning : Resource` ([VehicleTuning.cs](../game/vehicles/VehicleTuning.cs)) (extending engine types) | M1 | implemented |
 | Events | Lap completed, checkpoint crossed (C# `event`) | M1 | planned |
 | Unit testing | xUnit tests for lap rules in `tests/` | M1 | planned |
 | Dictionaries | Race progress per vehicle, e.g. `Dictionary<Vehicle, RaceProgress>` | M3 | planned |

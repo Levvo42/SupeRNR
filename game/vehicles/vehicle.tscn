@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bivma0atkx7g8"]
 
 [ext_resource type="Script" uid="uid://cqxe7k5k4pjvd" path="res://game/vehicles/Vehicle.cs" id="1_script"]
+[ext_resource type="Resource" uid="uid://dmrmibta4h0td" path="res://game/vehicles/default_tuning.tres" id="2_tuning"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_car"]
 friction = 0.0
@@ -84,7 +85,6 @@ particles_anim_loop = false
 material = SubResource("StandardMaterial3D_smoke")
 
 [node name="Vehicle" type="RigidBody3D" unique_id=1198720092]
-mass = 1200.0
 physics_material_override = SubResource("PhysicsMaterial_car")
 gravity_scale = 2.0
 center_of_mass_mode = 1
@@ -92,7 +92,7 @@ center_of_mass = Vector3(0, -0.3, 0)
 continuous_cd = true
 angular_damp = 0.3
 script = ExtResource("1_script")
-MaxWheelForce = 8500.0
+Tuning = ExtResource("2_tuning")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=935736686]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="VehicleTuning" format=3 uid="uid://dmrmibta4h0td"]
+
+[ext_resource type="Script" path="res://game/vehicles/VehicleTuning.cs" id="1_t55ub"]
+
+[resource]
+script = ExtResource("1_t55ub")
