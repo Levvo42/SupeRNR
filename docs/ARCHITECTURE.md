@@ -12,8 +12,9 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **C# project:** `SupeRNR.sln` → `SupeRNR.csproj` (Godot.NET.Sdk 4.7.2), `net10.0`,
   nullable reference types enabled, root namespace `SupeRNR`. The solution carries Godot's
   `Debug`, `ExportDebug` and `ExportRelease` configurations.
-- **Gameplay code:** driving input in `game/vehicles/`; the car itself is still the D-1
-  spike in `game/spike/`.
+- **Gameplay code:** the car and its driving input in `game/vehicles/`. `Vehicle` is the
+  D-1 spike with braking, reverse and slide handling added. The test tracks are still in
+  `game/spike/`.
 - **Input actions** (`project.godot`): `accelerate`, `brake`, `steer_left`, `steer_right`,
   `handbrake`. Keyboard uses physical keys (arrows and WASD, Space); gamepad uses the
   triggers, the left stick and the bottom face button. Deadzone 0.2.

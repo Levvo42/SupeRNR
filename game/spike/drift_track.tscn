@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c66c5kar1rtae"]
 
-[ext_resource type="PackedScene" uid="uid://bivma0atkx7g8" path="res://game/spike/spike_car.tscn" id="1_car"]
+[ext_resource type="PackedScene" uid="uid://bivma0atkx7g8" path="res://game/vehicles/vehicle.tscn" id="1_car"]
 [ext_resource type="ArrayMesh" path="res://game/spike/drift_track_terrain.res" id="2_terrain_mesh"]
 [ext_resource type="Shape3D" path="res://game/spike/drift_track_terrain_shape.res" id="3_terrain_shape"]
 [ext_resource type="Script" uid="uid://d2qvuigfwom8f" path="res://game/vehicles/PlayerDriver.cs" id="4_mlifn"]
