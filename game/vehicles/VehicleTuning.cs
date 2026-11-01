@@ -40,7 +40,7 @@ public partial class VehicleTuning : Resource
 
     [ExportGroup("Grip")]
     // N, the most force one wheel can push with (its grip budget).
-    [Export] public float MaxWheelForce { get; set; } = 8500f;
+    [Export] public float MaxWheelForce { get; set; } = 9000f;
 
     // N per m/s of sideways slide.
     [Export] public float WheelGrip { get; set; } = 6000f;
@@ -68,7 +68,7 @@ public partial class VehicleTuning : Resource
     [Export] public float SteerSpeed { get; set; } = 4f;
 
     // Steering share left at SteerFadeSpeed and above.
-    [Export(PropertyHint.Range, "0,1,0.05")] public float HighSpeedSteer { get; set; } = 0.35f;
+    [Export(PropertyHint.Range, "0,1,0.05")] public float HighSpeedSteer { get; set; } = 0.4f;
 
     // m/s where the steering has finished shrinking.
     [Export] public float SteerFadeSpeed { get; set; } = 40f;
