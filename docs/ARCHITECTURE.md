@@ -15,10 +15,11 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **Gameplay code:** the car and its driving input in `game/vehicles/`. `Vehicle` is the
   D-1 spike with braking, reverse and slide handling added. The flat test track is still in
   `game/spike/`.
-- **Handling tuning:** every handling number lives in a `VehicleTuning` resource (`Resource`
+- **Handling tuning:** handling numbers live in a `VehicleTuning` resource (`Resource`
   with `[Export]` properties), one `.tres` per car; `default_tuning.tres` is the only one so
-  far. Different cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass`
-  onto its own `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
+  far. A few thresholds are still written directly in `Vehicle.cs` (backlog Q-2). Different
+  cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass` onto its own
+  `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
 - **Circuit:** `game/tracks/drift_track.tscn` is the main scene: a 1.3 km closed loop with a
   chequered start/finish line. Four walls enclose the arena, drawn 3 m tall with 40 m tall
   collision so the car can't fly out (decision 20). Rails line some corners. The car
@@ -63,7 +64,8 @@ part to the first only when it is implemented. The reasoning behind each choice 
 - **No autoloads (global singletons) for game state.** Race state belongs to a session
   object that can be recreated on restart.
 - **Units:** 1 Godot unit = 1 metre; seconds; masses in kg. Handling tuning assumes this.
-- **Formatting and style:** `.editorconfig`, enforced by `dotnet format`.
+- **Formatting and style:** [CODING_RULES.md](CODING_RULES.md) is the checklist. `.editorconfig`
+  sets the style, and both `dotnet format` and the build enforce it.
 - **Godot/System name clashes:** Godot defines types that share names with `System` types
   (e.g. `Environment`, `Range`). With both `using Godot;` and `using System;`, qualify the
   one you mean (`System.Environment.Version`).
@@ -78,8 +80,9 @@ AiDriver        (milestone 3)    ──►      ▲
 Network input   (later)          ──►──────┘
 ```
 
-- Humans, bots and (later) remote players all drive the same `Vehicle`. An input-source
-  interface is introduced when the second source (AI) is built, not before.
+- Humans, bots and (later) remote players all drive the same `Vehicle`. A shared input source
+  type is introduced when the second source (AI) is built, not before. `[Export]` can't hold a
+  plain C# interface (error GD0102), so it will likely be an abstract `Node` class.
 - Because input is a plain value, it can later be sent to an authoritative server as a
   per-tick command.
 

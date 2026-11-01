@@ -220,3 +220,26 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   limit. Hard landings rebound 22 cm rather than 4 cm. Crashes at about 45° can spin the car
   up to two turns. The bot's drift lap went from 47.28 s to 47.30 s. Grass doesn't slow the
   car, so only the ordered checkpoints of D-9 will stop shortcuts.
+
+## 21. C# standards follow Microsoft and Godot, enforced by the build: 2026-11-01, Accepted
+
+- **Context:** Conventions were scattered across `.editorconfig`, `ARCHITECTURE.md` and agent
+  memory, and much of it wasn't enforced: `dotnet build` never ran the style rules, despite a
+  comment saying it did. General C# checklists also recommend things that are dated or don't fit
+  a Godot game.
+- **Decision:** Follow Microsoft's conventions, the .NET runtime style and Godot's C# guide, with
+  [CODING_RULES.md](CODING_RULES.md) as the checklist and [tutorials/](tutorials/README.md) as the
+  reasoning. The build enforces style through `EnforceCodeStyleInBuild`, and analysis through
+  `AnalysisLevel` `10-recommended`, pinned so a new SDK can't add warnings by itself. Verification
+  uses `--no-incremental -warnaserror`, while ordinary builds only warn, so experiments stay easy.
+  Where the sources differ or don't fit, we choose: `PascalCase` for private `static readonly`
+  fields rather than Microsoft's `s_`, because they read as constants; no `#region`; no `ALL_CAPS`;
+  no DI container, as `[Export]` and the scene tree do that job. CA1822 ("could be static") is only
+  a suggestion, because a node's methods belong to the node, as with `PlayerDriver.Read`. We stay
+  on `net10.0`, the LTS, because .NET 11 is short-term and a forum report says Godot fails to load
+  `net11.0` projects. We haven't tested that ourselves.
+- **Consequences:** Most style mistakes now fail verification, and the existing code already
+  passes. Some rules remain review-only: `MAX_SPEED` passes the naming check, and blank lines,
+  comment style and line length aren't checked. Bumping `AnalysisLevel` is a deliberate step during
+  upgrades. `GenerateDocumentationFile` is on only because the build needs it to find unused
+  usings, and CS1591 is off so it doesn't demand `///` everywhere.

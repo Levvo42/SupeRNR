@@ -21,7 +21,8 @@ insert_final_newline = false
 
 [*.cs]
 # Severity "warning" makes a rule part of `dotnet format --verify-no-changes`
-# and visible in `dotnet build`. "suggestion" only shows in the IDE.
+# and, through EnforceCodeStyleInBuild in SupeRNR.csproj, of `dotnet build`.
+# "suggestion" only shows in the IDE.
 
 # --- Layout ---
 csharp_new_line_before_open_brace = all
@@ -55,11 +56,18 @@ csharp_style_prefer_switch_expression = true:suggestion
 dotnet_diagnostic.IDE0005.severity = warning # unnecessary using
 csharp_style_unused_value_discard_assignment = discard_variable:suggestion
 
+# "Could be static": a node's methods belong to the node a scene wires up, even
+# when today's body reads no instance data (e.g. PlayerDriver.Read).
+dotnet_diagnostic.CA1822.severity = suggestion
+
 # Folders are snake_case (Godot convention); namespaces are PascalCase by feature.
 dotnet_diagnostic.IDE0130.severity = none
 resharper_check_namespace_highlighting = none
 
 # --- Naming (matches .NET runtime and Godot C# style guides) ---
+# The rules below only reach `dotnet build` through this one diagnostic.
+dotnet_diagnostic.IDE1006.severity = warning
+
 dotnet_naming_symbols.types_and_members.applicable_kinds = namespace, class, struct, interface, enum, delegate, event, method, property, local_function
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 dotnet_naming_rule.types_and_members_pascal.symbols = types_and_members

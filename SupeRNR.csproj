@@ -4,5 +4,12 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>SupeRNR</RootNamespace>
     <Nullable>enable</Nullable>
+    <!-- Microsoft's recommended rules, pinned to .NET 10 so a new SDK can't add surprise warnings. -->
+    <AnalysisLevel>10-recommended</AnalysisLevel>
+    <!-- Makes `dotnet build` report the .editorconfig rules set to warning. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- The build needs this to detect unused usings (IDE0005). CS1591 would demand XML docs on every public member. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 </Project>

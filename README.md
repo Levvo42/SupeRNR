@@ -7,9 +7,9 @@ reverse manoeuvres and jumps) that is fun even with nobody else on the track.
 
 ## Status
 
-**Pre-prototype.** The repository foundation and documentation exist; no gameplay
-is implemented yet. The current milestone is a playable driving prototype; see
-[docs/MVP.md](docs/MVP.md) and [docs/ROADMAP.md](docs/ROADMAP.md).
+**Milestone 1 in progress.** The car, its drifting, the camera and the circuit are playable;
+lap timing and the HUD come next. See [docs/MVP.md](docs/MVP.md),
+[docs/ROADMAP.md](docs/ROADMAP.md) and [docs/BACKLOG.md](docs/BACKLOG.md).
 
 ## Requirements
 
@@ -33,14 +33,18 @@ is implemented yet. The current milestone is a playable driving prototype; see
 Run these before every commit. All must pass with no warnings or changes:
 
 ```sh
-dotnet build SupeRNR.sln                              # compile
-dotnet format SupeRNR.sln --verify-no-changes         # style, driven by .editorconfig
-godot_console --headless --path . --import            # Godot import/resource sanity check
+dotnet build SupeRNR.sln --no-incremental -warnaserror   # compile, with analysers
+dotnet format SupeRNR.sln --verify-no-changes            # style, driven by .editorconfig
+godot_console --headless --path . --import               # Godot import/resource sanity check
 ```
 
+`--no-incremental` matters: a normal build skips unchanged code, and with it that code's warnings.
+
+- C# follows [docs/CODING_RULES.md](docs/CODING_RULES.md); the reasons are in
+  [docs/tutorials/](docs/tutorials/README.md).
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/),
   e.g. `feat(vehicle): add handbrake drift`, `docs: update roadmap`.
-- Work on short-lived branches off `main`; keep changes small.
+- Work on `main` and keep changes small.
 - Move or rename Godot files **inside the Godot editor** so `res://` references and
   `.uid` files stay intact. Commit the `.uid` files.
 

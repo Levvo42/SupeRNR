@@ -13,11 +13,15 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | How is the code structured? | Layout, namespaces, boundaries, current vs. intended design |
 | [DECISIONS.md](DECISIONS.md) | Why is it like this? | Decision records (context, decision, consequences) |
 | [LEARNING_MAP.md](LEARNING_MAP.md) | Where does course concept X show up? | Mapping of C# concepts to game systems |
+| [CODING_RULES.md](CODING_RULES.md) | How must C# be written here? | The checklist for writing and reviewing code |
+| [tutorials/](tutorials/README.md) | Why those rules, and how do I follow them? | Conventions and good practice, with examples and sources |
 
 Outside `docs/`:
 
 - [README.md](../README.md): setup, build/run, **verification commands**, workflow.
-- [AGENTS.md](../AGENTS.md): rules for AI agents (imported by `CLAUDE.md`).
+- [AGENTS.md](../AGENTS.md): rules for AI agents and where each project record lives (imported
+  by `CLAUDE.md`).
+- `private/`: personal session logs and lessons, ignored by git.
 - [LICENSE](../LICENSE): MIT, covering code only.
 
 ## Directory map
