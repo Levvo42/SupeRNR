@@ -26,7 +26,8 @@ reviewer**:
 
 ## Rules
 
-- Read [docs/CODING_RULES.md](docs/CODING_RULES.md) before writing or reviewing C#.
+- Read the matching file in [docs/standards/](docs/standards/README.md) before writing or reviewing
+  code, scenes or docs, and follow the [guide](docs/guides/README.md) when one covers the job.
 - Do not commit or push without approval. Use Conventional Commits. Work on `main`: it's a solo
   project, so no branches or pull requests.
 - Before calling work done, run the verification commands in [README.md](README.md#development-workflow).
@@ -66,8 +67,8 @@ Each kind of knowledge has one home. Put it there, so it can be found and nothin
 |---|---|---|
 | Prompts and answers | `private/docs/logs/` | Every answer, in its own file (see below) |
 | Lessons for the developer | `private/docs/tutorials/` | Godot and C# lessons on the real code. Index: its `README.md` |
-| Conventions and good practice | [docs/tutorials/](docs/tutorials/README.md) | Public tutorials behind the coding rules |
-| Coding rules | [docs/CODING_RULES.md](docs/CODING_RULES.md) | The short checklist |
+| How things are done | [docs/standards/](docs/standards/README.md) | Every project practice: naming, structure, C#, Godot, verification |
+| How to do common jobs | [docs/guides/](docs/guides/README.md) | Step-by-step instructions, with no teaching |
 | Why it's like this | [docs/DECISIONS.md](docs/DECISIONS.md) | Append-only decision records |
 | What's next | [docs/BACKLOG.md](docs/BACKLOG.md) | Work items and status |
 | Known defects | [docs/BUGS.md](docs/BUGS.md) | Open bugs. Delete the row on fixing; never reuse an ID |

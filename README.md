@@ -40,8 +40,8 @@ godot_console --headless --path . --import               # Godot import/resource
 
 `--no-incremental` matters: a normal build skips unchanged code, and with it that code's warnings.
 
-- C# follows [docs/CODING_RULES.md](docs/CODING_RULES.md); the reasons are in
-  [docs/tutorials/](docs/tutorials/README.md).
+- Every practice is in [docs/standards/](docs/standards/README.md), and the steps for common jobs
+  are in [docs/guides/](docs/guides/README.md).
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/),
   e.g. `feat(vehicle): add handbrake drift`, `docs: update roadmap`.
 - Work on `main` and keep changes small.
@@ -50,16 +50,18 @@ godot_console --headless --path . --import               # Godot import/resource
 
 ## Exporting a test build
 
-`export_presets.cfg` has one preset, **Windows Desktop**, which writes to `builds/windows/`
-(ignored by git). It needs the Godot 4.7.2 .NET export templates (**Editor → Manage Export
-Templates**). With the editor closed:
+`export_presets.cfg` has two presets, **Windows Desktop** and **Linux**, which write to
+`builds/windows/` and `builds/linux/` (ignored by git). Create those folders first. They need the
+Godot 4.7.2 .NET export templates (**Editor → Manage Export Templates**). With the editor closed:
 
 ```sh
 godot_console --headless --path . --export-release "Windows Desktop" builds/windows/SupeRNR.exe
+godot_console --headless --path . --export-release "Linux" builds/linux/SupeRNR.x86_64
 ```
 
-Zip the whole `builds/windows/` folder: the `.exe` needs the `.pck` and the
-`data_SupeRNR_windows_x86_64` folder next to it. Testers need nothing installed.
+Pack the whole folder for each platform: the program needs the `.pck` and the `data_SupeRNR_*`
+folder next to it. Use a `.zip` for Windows and a `.tar.gz` for Linux, with `SupeRNR.x86_64` marked
+executable. Testers need nothing installed.
 
 ## Documentation
 

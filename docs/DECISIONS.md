@@ -221,14 +221,14 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   up to two turns. The bot's drift lap went from 47.28 s to 47.30 s. Grass doesn't slow the
   car, so only the ordered checkpoints of D-9 will stop shortcuts.
 
-## 21. C# standards follow Microsoft and Godot, enforced by the build: 2026-11-01, Accepted
+## 21. C# standards follow Microsoft and Godot, enforced by the build: 2026-11-01, Accepted, documents superseded by #22
 
 - **Context:** Conventions were scattered across `.editorconfig`, `ARCHITECTURE.md` and agent
   memory, and much of it wasn't enforced: `dotnet build` never ran the style rules, despite a
   comment saying it did. General C# checklists also recommend things that are dated or don't fit
   a Godot game.
 - **Decision:** Follow Microsoft's conventions, the .NET runtime style and Godot's C# guide, with
-  [CODING_RULES.md](CODING_RULES.md) as the checklist and [tutorials/](tutorials/README.md) as the
+  `CODING_RULES.md` as the checklist and `tutorials/` as the
   reasoning. The build enforces style through `EnforceCodeStyleInBuild`, and analysis through
   `AnalysisLevel` `10-recommended`, pinned so a new SDK can't add warnings by itself. Verification
   uses `--no-incremental -warnaserror`, while ordinary builds only warn, so experiments stay easy.
@@ -243,3 +243,18 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   comment style and line length aren't checked. Bumping `AnalysisLevel` is a deliberate step during
   upgrades. `GenerateDocumentationFile` is on only because the build needs it to find unused
   usings, and CS1591 is off so it doesn't demand `///` everywhere.
+
+## 22. Standards and guides replace the coding rules and tutorials: 2026-11-01, Accepted
+
+- **Context:** The tutorials from #21 taught C#, with exercises and quizzes, when what the project
+  needs is a reference: what we do, what things are called, and how to do each job here. They
+  also said little about Godot, and conventions were still split between `ARCHITECTURE.md`,
+  `CODING_RULES.md` and the tutorials.
+- **Decision:** [standards/](standards/README.md) is the one home for every project practice, and
+  [guides/](guides/README.md) holds the steps for repeated jobs. Neither teaches. `CODING_RULES.md`,
+  `tutorials/` and the Conventions list in `ARCHITECTURE.md` are removed, and what they held moved
+  to the standards. Lessons remain private, in `private/docs/tutorials/`. The tool and style
+  choices in #21 still stand.
+- **Consequences:** A new person can look up any practice in one place. A new practice now has to
+  be added to a standard in the commit that starts using it. Code that doesn't meet a standard yet
+  is listed as a known exception, tied to its backlog item, so it isn't copied.

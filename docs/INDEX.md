@@ -10,11 +10,11 @@
 | [BACKLOG.md](BACKLOG.md) | What is the next concrete task? | Work items and their status |
 | [IDEAS.md](IDEAS.md) | What might we build some day? | Unscheduled features and ideas |
 | [BUGS.md](BUGS.md) | What is broken that we know about? | Known, unfixed defects |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | How is the code structured? | Layout, namespaces, boundaries, current vs. intended design |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | How is the game built? | Systems and boundaries, current vs. intended design |
 | [DECISIONS.md](DECISIONS.md) | Why is it like this? | Decision records (context, decision, consequences) |
 | [LEARNING_MAP.md](LEARNING_MAP.md) | Where does course concept X show up? | Mapping of C# concepts to game systems |
-| [CODING_RULES.md](CODING_RULES.md) | How must C# be written here? | The checklist for writing and reviewing code |
-| [tutorials/](tutorials/README.md) | Why those rules, and how do I follow them? | Conventions and good practice, with examples and sources |
+| [standards/](standards/README.md) | How do we do things here? | Every project practice: naming, structure, C#, Godot, verification |
+| [guides/](guides/README.md) | How do I do this job? | Step-by-step instructions for common work |
 
 Outside `docs/`:
 

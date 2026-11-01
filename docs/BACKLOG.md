@@ -38,13 +38,13 @@ a refactor. Who does it: **you** for your files, **agent** for `Vehicle.cs` phys
 
 | ID | Task | Who | Status |
 |---|---|---|---|
-| Q-1 | `PlayerDriver`: cache the five input action names as `static readonly StringName` | you | todo |
+| Q-1 | `PlayerDriver`: cache the five input action names as `static readonly StringName` | you | done |
 | Q-2 | `Vehicle`: name the bare thresholds. Handling values (lines 76, 79, 152, 232, 255, 340) go in `VehicleTuning`; the rest (374, 380, 394, 403) become named `const`s | agent | todo |
 | Q-3 | `Vehicle`: use `GlobalBasis` instead of `Basis`, and remove the `GD.Print` in `_Ready` | agent | todo |
 | Q-4 | `Vehicle`: replace the long parameter lists (`SteerFrontWheels`, `ApplyWheel`, `ApplyGlide`) with a per-tick `readonly record struct` | agent | todo |
 | Q-5 | `Vehicle`: remove duplication (`Flat` helper, a yaw-rate setter, one loop over four wheels), then split it where the banner comments are | agent | todo |
-| Q-6 | `FollowCamera` and `PlayerDriver`: formatting slips, and a comment on each class ([exercise](tutorials/01-naming-and-layout.md#try-it-yourself)) | you | todo |
-| Q-7 | Report unassigned required exports (`FollowCamera.Target`, `Vehicle.Tuning`) instead of carrying on silently ([exercise](tutorials/03-errors-and-null.md#try-it-yourself)) | you | todo |
+| Q-6 | `FollowCamera` and `PlayerDriver`: formatting slips, and a comment on each class ([standard](standards/csharp.md#formatting)) | you | todo |
+| Q-7 | Report unassigned required exports (`Vehicle.Tuning`; `FollowCamera.Target` is done) instead of carrying on silently ([standard](standards/csharp.md#errors)) | you | todo |
 
 ## Not scheduled
 
