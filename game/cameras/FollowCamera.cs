@@ -4,9 +4,9 @@ namespace SupeRNR.Cameras;
 
 public partial class FollowCamera : Node3D
 {
-
-    //The car to follow
+    // The car to follow
     [Export] public RigidBody3D? Target { get; set; }
+
     // Per second: how quickly the camera catches up with where it wants to be.
     [Export] public float FollowSpeed { get; set; } = 5f;
 
@@ -17,6 +17,15 @@ public partial class FollowCamera : Node3D
     [Export] public float LookAheadTurn { get; set; } = 3f;
 
     private Vector3 _lead;
+
+    public override void _Ready()
+    {
+        if (Target is null)
+        {
+            GD.PushError($"{Name}: no Target assigned.");
+            SetPhysicsProcess(false);
+        }
+    }
 
     public override void _PhysicsProcess(double delta)
     {
@@ -33,7 +42,8 @@ public partial class FollowCamera : Node3D
         goal.Y = GlobalPosition.Y;
         GlobalPosition = GlobalPosition.Lerp(goal, Share(FollowSpeed, dt));
     }
-    // The share of the remaining  distance to cover this frame, at any frame rate.
+
+    // The share of the remaining distance to cover this frame, at any frame rate.
     private static float Share(float speed, float dt)
     {
         return 1f - Mathf.Exp(-speed * dt);
