@@ -46,6 +46,7 @@ public partial class Vehicle : RigidBody3D
     {
         // The left Mass is the one Vehicle inherits from RigidBody3D
         Mass = Tuning.Mass;
+        PhysicsMaterialOverride.Bounce = Tuning.Bounce;
         GD.Print($"Car ready. Mass: {Mass} kg");
         _rayFrontLeft = GetNode<RayCast3D>("RayFrontLeft");
         _rayFrontRight = GetNode<RayCast3D>("RayFrontRight");

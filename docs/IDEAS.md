@@ -25,7 +25,13 @@ milestone, and its line here links to that task. Known defects go in [BUGS.md](B
 
 ## Tracks
 
-- **Jumps and ramps on real tracks.** The spike drift track already has test ramps: an
+- **Tracks in the air, over a void.** Falling off counts as crashing, as in Mario Kart,
+  rather than being stopped by arena walls. Needs a way to put the car back on the track.
+- **Surfaces:** grass, glass, ice and water, from shallow pools to deep water with its own
+  physics. Grip and drag ignore the surface today, so leaving the road costs nothing.
+- **Path choices:** routes that split and rejoin.
+- **Obstacles and hazards:** things to jump over, and things that damage the car.
+- **Jumps and ramps on real tracks.** The drift track already has test ramps: an
   overpass jump, three tabletops and a jump test pad with four kicker heights.
 
 ## Progression

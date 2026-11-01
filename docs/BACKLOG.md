@@ -23,7 +23,7 @@ Acceptance criteria for M1 items are in [MVP.md](MVP.md).
 | D-4 | `VehicleTuning` resource; move all handling numbers into it | done |
 | D-5 | Lateral grip and handbrake drift with countersteer recovery | done |
 | D-6 | Isometric follow camera (pick orthographic vs. perspective) | done |
-| D-7 | Graybox circuit with walls and start/finish | todo |
+| D-7 | Graybox circuit with walls and start/finish | done |
 | D-8 | `core/` library + xUnit test project | todo |
 | D-9 | Lap tracker (ordered checkpoints, lap times, best lap) with tests | todo |
 | D-10 | Checkpoint `Area3D`s and `RaceSession` wiring | todo |

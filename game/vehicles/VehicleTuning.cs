@@ -13,6 +13,9 @@ public partial class VehicleTuning : Resource
     // kg.
     [Export] public float Mass { get; set; } = 1200f;
 
+    // Share of its speed into a wall the car keeps coming back off it. Hard landings bounce too.
+    [Export(PropertyHint.Range, "0,1,0.01")] public float Bounce { get; set; } = 0.3f;
+
     [ExportGroup("Engine and brakes")]
     // N, total, split over the rear wheels.
     [Export] public float EngineForce { get; set; } = 20000f;

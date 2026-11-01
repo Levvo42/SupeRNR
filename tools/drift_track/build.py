@@ -12,7 +12,7 @@ from layout import *
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, ".godot", "drift_track")
-SCENE = os.path.join(ROOT, "game", "spike", "drift_track.tscn")
+SCENE = os.path.join(ROOT, "game", "tracks", "drift_track.tscn")
 FIRST_NEW_ID = 1700000100
 RAIL_SINK = 0.05    # metres the rail foot sits below the ground, so no gap shows on a slope
 

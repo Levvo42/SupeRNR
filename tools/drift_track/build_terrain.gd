@@ -45,11 +45,11 @@ func _init() -> void:
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	print("mesh save: ", ResourceSaver.save(mesh, "res://game/spike/drift_track_terrain.res"))
+	print("mesh save: ", ResourceSaver.save(mesh, "res://game/tracks/drift_track_terrain.res"))
 
 	var shape := HeightMapShape3D.new()
 	shape.map_width = nx
 	shape.map_depth = nz
 	shape.map_data = heights
-	print("shape save: ", ResourceSaver.save(shape, "res://game/spike/drift_track_terrain_shape.res"))
+	print("shape save: ", ResourceSaver.save(shape, "res://game/tracks/drift_track_terrain_shape.res"))
 	quit()

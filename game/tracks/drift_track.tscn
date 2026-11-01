@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://c66c5kar1rtae"]
 
 [ext_resource type="PackedScene" uid="uid://bivma0atkx7g8" path="res://game/vehicles/vehicle.tscn" id="1_car"]
-[ext_resource type="ArrayMesh" path="res://game/spike/drift_track_terrain.res" id="2_terrain_mesh"]
-[ext_resource type="Shape3D" path="res://game/spike/drift_track_terrain_shape.res" id="3_terrain_shape"]
+[ext_resource type="ArrayMesh" path="res://game/tracks/drift_track_terrain.res" id="2_terrain_mesh"]
+[ext_resource type="Shape3D" path="res://game/tracks/drift_track_terrain_shape.res" id="3_terrain_shape"]
 [ext_resource type="Script" uid="uid://d2qvuigfwom8f" path="res://game/vehicles/PlayerDriver.cs" id="4_mlifn"]
 [ext_resource type="PackedScene" uid="uid://bqvqi3l7ftutp" path="res://game/cameras/follow_camera.tscn" id="5_camera"]
 
@@ -59,7 +59,7 @@ shader_parameter/lot_b = Color(0.34, 0.34, 0.36, 1)
 shader_parameter/cell_size = 4.0
 
 [sub_resource type="BoxShape3D" id="Shape_wallNS"]
-size = Vector3(344, 3, 2)
+size = Vector3(344, 40, 2)
 
 [sub_resource type="StandardMaterial3D" id="Mat_wall"]
 albedo_color = Color(0.75, 0.75, 0.78, 1)
@@ -69,7 +69,7 @@ material = SubResource("Mat_wall")
 size = Vector3(344, 3, 2)
 
 [sub_resource type="BoxShape3D" id="Shape_wallEW"]
-size = Vector3(2, 3, 260)
+size = Vector3(2, 40, 260)
 
 [sub_resource type="BoxMesh" id="Mesh_wallEW"]
 material = SubResource("Mat_wall")
@@ -149,9 +149,16 @@ point_count = 50
 [sub_resource type="StandardMaterial3D" id="Mat_paint"]
 albedo_color = Color(0.95, 0.95, 0.95, 1)
 
+[sub_resource type="ShaderMaterial" id="Mat_startline"]
+render_priority = 0
+shader = SubResource("Shader_checker")
+shader_parameter/color_a = Color(0.08, 0.08, 0.09, 1)
+shader_parameter/color_b = Color(0.95, 0.95, 0.95, 1)
+shader_parameter/cell_size = 1.0
+
 [sub_resource type="BoxMesh" id="Mesh_startline"]
-material = SubResource("Mat_paint")
-size = Vector3(1, 0.04, 16)
+material = SubResource("Mat_startline")
+size = Vector3(3, 0.04, 16)
 
 [sub_resource type="ShaderMaterial" id="Mat_ramp"]
 render_priority = 0
@@ -229,6 +236,7 @@ mesh = ExtResource("2_terrain_mesh")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -131)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/North" unique_id=825108369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.5, 0)
 shape = SubResource("Shape_wallNS")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/North" unique_id=1879559079]
@@ -238,6 +246,7 @@ mesh = SubResource("Mesh_wallNS")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 131)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/South" unique_id=634108189]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.5, 0)
 shape = SubResource("Shape_wallNS")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/South" unique_id=118296809]
@@ -247,6 +256,7 @@ mesh = SubResource("Mesh_wallNS")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -171, 1.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/West" unique_id=2037667722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.5, 0)
 shape = SubResource("Shape_wallEW")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/West" unique_id=1252053724]
@@ -256,6 +266,7 @@ mesh = SubResource("Mesh_wallEW")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 171, 1.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/East" unique_id=1542787767]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.5, 0)
 shape = SubResource("Shape_wallEW")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/East" unique_id=1295569463]

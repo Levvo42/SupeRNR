@@ -13,12 +13,17 @@ part to the first only when it is implemented. The reasoning behind each choice 
   nullable reference types enabled, root namespace `SupeRNR`. The solution carries Godot's
   `Debug`, `ExportDebug` and `ExportRelease` configurations.
 - **Gameplay code:** the car and its driving input in `game/vehicles/`. `Vehicle` is the
-  D-1 spike with braking, reverse and slide handling added. The test tracks are still in
+  D-1 spike with braking, reverse and slide handling added. The flat test track is still in
   `game/spike/`.
 - **Handling tuning:** every handling number lives in a `VehicleTuning` resource (`Resource`
   with `[Export]` properties), one `.tres` per car; `default_tuning.tres` is the only one so
   far. Different cars mean different data, not subclasses. `Vehicle` copies `Tuning.Mass`
   onto its own `Mass` in `_Ready`, so the mass is set in the resource, not on the node.
+- **Circuit:** `game/tracks/drift_track.tscn` is the main scene: a 1.3 km closed loop with a
+  chequered start/finish line. Four walls enclose the arena, drawn 3 m tall with 40 m tall
+  collision so the car can't fly out (decision 20). Rails line some corners. The car
+  rebounds off both through `Bounce` in `VehicleTuning`, which `Vehicle` copies onto its
+  physics material in `_Ready`.
 - **Camera:** `game/cameras/follow_camera.tscn` is placed in each track, and its `Target`
   export is set to the car. The child `Camera3D` holds the fixed view angle (decision 19).
   `FollowCamera` moves the root node towards a point ahead of the car, smoothly and without
@@ -32,7 +37,7 @@ part to the first only when it is implemented. The reasoning behind each choice 
   an immutable `readonly record struct` of throttle, brake, steer and handbrake. With no
   driver assigned the car gets `DrivingInput.None`. The `PlayerDriver` node sits next to the
   car in the track scene, because the track decides who drives.
-- **Track generator:** `tools/drift_track/` builds the spike drift track's terrain and rails
+- **Track generator:** `tools/drift_track/` builds the drift track's terrain and rails
   from the corner table in `layout.py` (Python, plus one Godot script). With the editor
   closed, run `python tools/drift_track/build.py`, then
   `godot_console --headless --path . --script res://tools/drift_track/build_terrain.gd`.

@@ -25,8 +25,8 @@ is implemented yet. The current milestone is a playable driving prototype; see
    To open scripts in Rider, set **Editor Settings → Dotnet → Editor → External Editor**
    to *JetBrains Rider* (a per-machine setting).
 2. Build C# with the editor's **Build** button, in Rider, or `dotnet build SupeRNR.sln`.
-3. Press **F5** in the editor, or run `godot --path .`. The main scene is the spike drift
-   track, `game/spike/drift_track.tscn`.
+3. Press **F5** in the editor, or run `godot --path .`. The main scene is the drift track,
+   `game/tracks/drift_track.tscn`.
 
 ## Development workflow
 

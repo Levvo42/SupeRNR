@@ -200,3 +200,23 @@ Format: **Context** (why it came up) · **Decision** · **Consequences**.
   property changes if orthographic is preferred later, plus a `Size` of 60. Physics
   interpolation means a teleported body needs `ResetPhysicsInterpolation()`, or it visibly
   slides to its new position (relevant to D-12). The drift lap is unchanged at 47.28 s.
+
+## 20. The drift track is the MVP circuit, and its walls are taller than they look: 2026-10-31, Accepted
+
+- **Context:** D-7 asks for a graybox circuit, and the spike drift track is already a closed
+  1.3 km loop. Measured at speed, it failed two MVP rules. The car stopped dead at walls
+  instead of bouncing, and a climbing car cleared the 3 m walls. No ramp is needed for that:
+  the banked shoulder near the east wall throws the car 2.6 m up.
+- **Decision:** Move the track to `game/tracks/` and keep it as the circuit. Wall collision
+  is 40 m tall but only 3 m is drawn, because the camera looks from the south and a tall
+  south wall would hide the car. Bounce is a car setting, `VehicleTuning.Bounce`, at 0.3:
+  rails are CSG nodes, which have no physics material, so a wall-side setting can't reach
+  them. At 0.4 the car flipped in one of 21 hits; at 0.3 it never did. Yaw isn't capped after
+  a hit, because a deliberate handbrake spin already reaches 11 rad/s and a cap also reduced
+  the rebound.
+- **Consequences:** A 35 m/s head-on hit comes back at about 10 m/s, shallow hits scrape along
+  keeping their speed, and 10 of 10 hard climbing shots at the walls and corners stayed in.
+  A very high jump can stop against nothing visible, though no shot came close to the 40 m
+  limit. Hard landings rebound 22 cm rather than 4 cm. Crashes at about 45° can spin the car
+  up to two turns. The bot's drift lap went from 47.28 s to 47.30 s. Grass doesn't slow the
+  car, so only the ordered checkpoints of D-9 will stop shortcuts.
